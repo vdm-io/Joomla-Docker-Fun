@@ -282,7 +282,7 @@ print
 		for i in $(seq $WEBSITESNUMBER)
 		do
 			password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1);
-			subdomain=$(cat /dev/urandom | tr -dc 'a-zA-Z' | fold -w 7 | head -n 1);
+			subdomain=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 7 | head -n 1);
 			# set the date to the website config
 			echo -e "${subdomain}\t" \
 				"${WEBSITESNAME}\t" \
