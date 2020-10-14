@@ -33,7 +33,7 @@ print
 print
 	# show the configuration details at least once
 	showConfig
-	sleep 2 # pause to read
+	sleep 3 # pause to read
 	# exit 1 # to debug
 	# setup Traefik
 	setupTraefik
@@ -43,8 +43,10 @@ print
 	setupWebConfig
 	# Always first setup the PHP local image
 	setupPHPimage
-	# setup docker scripts
+	# setup joomla docker image
+	setupJOOMLABASEimage
 	# build all websites
+	print "Next We Setup the docker-compose file per website, and... well we are nearly there." O
 print
 print
 print "█████████████████████████████████████████████████████████████████████████" H2
@@ -166,17 +168,22 @@ TRAEFIKDOMAIN=$(getProperty "traefik.domain") # default "vdm.io"
 TRAEFIKEMAIL=$(getProperty "traefik.email") # default "your@email.com"
 TRAEFIKDASHBOARD=$(getProperty "traefik.dashboard") # default "true"
 TRAEFIKINSECURE=$(getProperty "traefik.insecure") # default "true"
-# main image name
-mainImagePull=$(getProperty "mainimage.pull") # default should be 1
-mainImageFolder=$(getProperty "mainimage.docker.folder") # default "PHP7.4"
-mainImageName=$(getProperty "mainimage.docker.name") # default "vdmio/php"
-mainImageTag=$(getProperty "mainimage.docker.tag.name") # default "7.4-apache-node12"
+# PHP image name
+phpImagePull=$(getProperty "php.image.pull") # default should be 1
+phpImageFolder=$(getProperty "php.image.docker.folder") # default "PHP7.4"
+phpImageName=$(getProperty "php.image.docker.name") # default "vdmio/php"
+phpImageTag=$(getProperty "php.image.docker.tag.name") # default "7.4-apache-node12"
+# Joomla image name
+joomlaImagePull=$(getProperty "joomla.image.pull") # default should be 1
+joomlaImageFolder=$(getProperty "joomla.image.docker.folder") # default "JOOMLA4.0.0-beta4"
+joomlaImageName=$(getProperty "joomla.image.docker.name") # default "vdmio/joomla"
+joomlaImageTag=$(getProperty "joomla.image.docker.tag.name") # default "4.0.0-beta4"
 
 function showConfig(){
 print
 print "█████████████████████████████████████████████████████████ SHOW CONFIG ███" H1
 print
-print "DOCKER DETAILS" H1
+print "CONTAINER DETAILS" H1
 print "WEBSITESNUMBER:                    $WEBSITESNUMBER" O
 print "WEBSITESUNAME:                     $WEBSITESUNAME" O
 print "WEBSITESUSERNAME:                  $WEBSITESUSERNAME" O
@@ -195,11 +202,17 @@ print "TRAEFIKEMAIL:                      $TRAEFIKEMAIL" O
 print "TRAEFIKDASHBOARD:                  $TRAEFIKDASHBOARD" O
 print "TRAEFIKINSECURE:                   $TRAEFIKINSECURE" O
 print
-print "MAIN IMAGE DETAILS" H1
-print "mainImagePull:                    $mainImagePull" O
-print "mainImageFolder:                  $mainImageFolder" O
-print "mainImageName:                    $mainImageName" O
-print "mainImageTag:                     $mainImageTag" O
+print "PHP IMAGE DETAILS" H1
+print "phpImagePull:                      $phpImagePull" O
+print "phpImageFolder:                    $phpImageFolder" O
+print "phpImageName:                      $phpImageName" O
+print "phpImageTag:                       $phpImageTag" O
+print
+print "JOOMLA IMAGE DETAILS" H1
+print "joomlaImagePull:                   $joomlaImagePull" O
+print "joomlaImageFolder:                 $joomlaImageFolder" O
+print "joomlaImageName:                   $joomlaImageName" O
+print "joomlaImageTag:                    $joomlaImageTag" O
 print
 print
 }
@@ -231,29 +244,60 @@ function echoTweak() {
 #█████████████████████████████████████████████████████ Setup PHP local image ███
 function setupPHPimage() {
 	# should we pull the image or build the image
-	if [ "$mainImagePull" -eq "1" ]; then
+	if [ "$phpImagePull" -eq "1" ]; then
 print
 print
 print "██████████████████████████████████████████████████████ PULL PHP IMAGE ███" H1
 print
 print	
-		docker pull "$mainImageName:$mainImageTag"	
+		docker pull "$phpImageName:$phpImageTag"	
 print
 print
 print "██████████████████████████████████████████████ DONE PULLING PHP IMAGE ███" H1
 print
 print	
 	# only setup PHP if not already done
-	elif [ ! "$(docker images | grep $mainImageName)" ]; then
+	elif [ ! "$(docker images | grep $phpImageName)" ]; then
 print
 print
 print "█████████████████████████████████████████████████████ BUILD PHP IMAGE ███" H1
 print
 print
-		docker build $(dirname $0)/$mainImageFolder -t "$mainImageName:$mainImageTag"
+		docker build $(dirname $0)/$phpImageFolder -t "$phpImageName:$phpImageTag"
 print
 print
 print "█████████████████████████████████████████████ DONE BUILDING PHP IMAGE ███" H1
+print
+print
+	fi
+}
+
+#██████████████████████████████████████████████████ Setup Joomla local image ███
+function setupJOOMLABASEimage() {
+	# should we pull the image or build the image
+	if [ "$joomlaImagePull" -eq "1" ]; then
+print
+print
+print "███████████████████████████████████████████████████ PULL JOOMLA IMAGE ███" H1
+print
+print	
+		docker pull "$joomlaImageName:$joomlaImageTag"	
+print
+print
+print "███████████████████████████████████████████ DONE PULLING JOOMLA IMAGE ███" H1
+print
+print	
+	# only setup Joomla if not already done
+	elif [ ! "$(docker images | grep $joomlaImageName)" ]; then
+print
+print
+print "██████████████████████████████████████████████████ BUILD JOOMLA IMAGE ███" H1
+print
+print
+		docker build $(dirname $0)/$joomlaImageFolder -t "$joomlaImageName:$joomlaImageTag"
+print
+print
+print "██████████████████████████████████████████ DONE BUILDING JOOMLA IMAGE ███" H1
 print
 print
 	fi
@@ -281,7 +325,7 @@ print
 		# we set the subdomain username password
 		for i in $(seq $WEBSITESNUMBER)
 		do
-			password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 5 | head -n 1);
+			password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1);
 			subdomain=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 7 | head -n 1);
 			# set the date to the website config
 			echo -e "${subdomain}\t" \

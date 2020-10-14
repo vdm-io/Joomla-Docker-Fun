@@ -1,6 +1,6 @@
 FROM thecodingmachine/php:7.4-v3-apache-node12
 
-LABEL authors="Llewellyn van der Merwe <llewellyn@vdm.io>"
+MAINTAINER Llewellyn van der Merwe <llewellyn.van-der-merwe@community.joomla.org>
 
 # Enable extensions
 ENV PHP_EXTENSION_XDEBUG=1
@@ -18,6 +18,7 @@ ENV PHP_INI_POST_MAX_SIZE=200M
 # Install
 RUN sudo apt-get update
 RUN sudo apt-get install -y mariadb-client
+RUN sudo apt-get install -y postgresql-client
 RUN sudo apt-get install -y graphviz python
 RUN sudo apt-get install -y build-essential
 RUN sudo apt-get install -y rsync

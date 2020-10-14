@@ -2,10 +2,17 @@
 
 ### DOCKER ###########################################
 docker.host.ip=127.0.0.1
+
+
+### JOOMLA BASE ######################################
+# 1 is true and 0 is false
+joomla.image.pull=1
+# default "JOOMLA4.0.0-beta4"
+joomla.image.docker.folder=JOOMLA4.0.0-beta4
 # default "vdmio/joomla"
-docker.name=vdmio/joomla
-# default "v4"
-docker.tag.name=v4
+joomla.image.docker.name=vdmio/joomla
+# default "4.0.0-beta4"
+joomla.image.docker.tag.name=4.0.0-beta4
 
 ### WEBSITE CONTAINER #################################
 # the number of website to deploy
@@ -39,13 +46,13 @@ portainer.activate=1
 # default "portainer"
 portainer.name=portainer
 
-### MAIN IMAGE ########################################
+### PHP IMAGE #########################################
 # 1 is true and 0 is false
-mainimage.pull=1
+php.image.pull=1
 # default "PHP7.4"
-mainimage.docker.folder=PHP7.4
+php.image.docker.folder=PHP7.4
 # default "vdmio/php"
-mainimage.docker.name=vdmio/php
+php.image.docker.name=vdmio/php
 # default "7.4-apache-node12"
-mainimage.docker.tag.name=7.4-apache-node12
+php.image.docker.tag.name=7.4-apache-node12
 
