@@ -1,0 +1,51 @@
+# YOUR CONFIG OPTIONS
+
+### DOCKER ###########################################
+docker.host.ip=127.0.0.1
+# default "vdmio/joomla"
+docker.name=vdmio/joomla
+# default "v4"
+docker.tag.name=v4
+
+### WEBSITE CONTAINER #################################
+# the number of website to deploy
+container.website.number=5
+# the generic name of a user
+container.website.uname=Tester
+# the generic useruser
+container.website.username=tester
+# the generic user and site email
+container.website.email=tester@email.com
+# the generic website name
+container.website.websitename=Joomla Testing Website
+
+### TRAEFIK ##########################################
+# 1 is true and 0 is false
+traefik.activate=1
+# default should be traefik
+traefik.name=traefik
+# default yourserverdomain.com
+traefik.domain=yourserverdomain.com
+# default "your@email.com"
+traefik.email=your@email.com
+# just true or false
+traefik.dashboard=true
+# just true or false
+traefik.insecure=true
+
+### PORTAINER #########################################
+# 1 is true and 0 is false
+portainer.activate=1
+# default "portainer"
+portainer.name=portainer
+
+### MAIN IMAGE ########################################
+# 1 is true and 0 is false
+mainimage.pull=1
+# default "PHP7.4"
+mainimage.docker.folder=PHP7.4
+# default "vdmio/php"
+mainimage.docker.name=vdmio/php
+# default "7.4-apache-node12"
+mainimage.docker.tag.name=7.4-apache-node12
+
