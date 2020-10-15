@@ -14,7 +14,7 @@ command -v sshpass >/dev/null 2>&1 || { echo "sshpass NOT installed. Aborting!";
 
 # simple basic random
 function getPassword () {
-    echo $(tr -dc 'A-HJ-NP-Za-km-z2-9' < /dev/urandom | dd bs=5 count=1 status=none)
+    echo $(tr -dc 'A-HJ-NP-Za-km-z2-9' < /dev/urandom | dd bs=15 count=1 status=none)
 }
 
 # the remote docker deploy script
