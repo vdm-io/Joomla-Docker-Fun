@@ -15,7 +15,7 @@ PROPERTYFILE="config.properties"
 # we must upload this file first! (since its private)
 # before triggering this script
 if [ ! -f "$PROPERTYFILE" ]; then
-  echo "First upload your config file to the server before running this script"; exit 1;
+  echo "First upload your config.properties file to the server before running this script"; exit 1;
 fi
 # to get the properties from our config
 function getProperty {

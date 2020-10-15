@@ -71,7 +71,7 @@ services:
       - web-root:/var/www/html
     depends_on:
       - web
-    command: certonly --webroot --webroot-path=/var/www/html --email {WEBSITESUNAME}@{DOMAIN} --agree-tos --no-eff-email --staging -d {DOMAIN}
+    command: certonly --webroot --webroot-path=/var/www/html --email {WEBSITESEMAIL} --agree-tos --no-eff-email --staging -d {DOMAIN}
 
 volumes:
     web-root:
