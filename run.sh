@@ -172,8 +172,6 @@ DBRPASS=$(getProperty "container.website.dbrootpass")
 DBNAME=$(getProperty "container.website.dbname")
 DBPREFIX=$(getProperty "container.website.dbprefix")
 SMTPHOST=$(getProperty "container.website.smtphost")
-PGEMAIL=$(getProperty "container.website.pgemail")
-PGPASS=$(getProperty "container.website.pgpass")
 # Joomla image name
 joomlaImagePull=$(getProperty "joomla.image.pull") # default should be 1
 joomlaImageFolder=$(getProperty "joomla.image.docker.folder") # default "JOOMLA4.0.0-beta4"
@@ -207,8 +205,6 @@ print "DBRPASS:                           xxxxxxxxxxxxxxxxxx" O
 print "DBNAME:                            $DBNAME" O
 print "DBPREFIX:                          $DBPREFIX" O
 print "SMTPHOST:                          $SMTPHOST" O
-print "PGEMAIL:                           $PGEMAIL" O
-print "PGPASS:                            xxxxxxxxxxxxxxxxxx" O
 print
 # is this an active build/pull of this image
 if [ "$ACTIVEPHP" -eq "1" ]; then
@@ -335,10 +331,6 @@ print
     sed -i "s/{DBPREFIX}/$DBPREFIX/g" "${DOCKERFOLDER}/docker-compose.yml"
     print "Updating the {SMTPHOST} value with $SMTPHOST" B
     sed -i "s/{SMTPHOST}/$SMTPHOST/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {PGEMAIL} value with $PGEMAIL" B
-    sed -i "s/{PGEMAIL}/$PGEMAIL/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {PGPASS} value with xxxxxxxxxxxxxxxxxx" B
-    sed -i "s/{PGPASS}/$PGPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
     # Run docker compose
     docker-compose -f "${DOCKERFOLDER}/docker-compose.yml" up -d
 print
