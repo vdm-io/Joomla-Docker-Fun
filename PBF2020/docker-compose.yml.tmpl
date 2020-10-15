@@ -29,8 +29,8 @@ services:
     volumes:
        - web-root:/var/www/html
     ports:
-      - 80:80
-      - 443:443
+      - {WEBPORT}:80
+      - {WEBSSLPORT}:443
 
   {DBHOST}:
     image: mysql:5.7
@@ -53,14 +53,14 @@ services:
     links:
       - {DBHOST}
     ports:
-      - 81:80
+      - {PAMPORT}:80
 
   mailcatcher:
     image: schickling/mailcatcher
     container_name: mailcatcher
     restart: unless-stopped
     ports:
-      - 82:1080
+      - {MCPORT}:1080
 
   certbot:
     image: certbot/certbot
@@ -69,6 +69,8 @@ services:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
       - web-root:/var/www/html
+    links:
+      - web
     depends_on:
       - web
     command: certonly --webroot --webroot-path=/var/www/html --email {SSLEMAIL} --agree-tos --no-eff-email --staging -d {DOMAIN}

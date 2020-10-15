@@ -73,7 +73,7 @@ command -v docker >/dev/null 2>&1 || {
 # check if we should reset the container
 RESETCONTAINER=$(getProperty "container.reset")
 if [ "$RESETCONTAINER" -eq "1" ]; then
-  # we remove all docker stuff, to force and update
+  # we remove all docker stuff, to force a deep update
   docker stop joomla phpmyadmin mailcatcher mysql certbot -f
   docker rm joomla phpmyadmin mailcatcher mysql certbot -f
   docker rmi vdmio/joomla:4.0.0-beta4 phpmyadmin/phpmyadmin schickling/mailcatcher mysql:5.7 certbot/certbot -f
@@ -102,6 +102,10 @@ DBNAME=$(getProperty "container.website.dbname")
 DBPREFIX=$(getProperty "container.website.dbprefix")
 SMTPHOST=$(getProperty "container.website.smtphost")
 SSLEMAIL=$(getProperty "container.website.sslemail")
+WEBPORT=$(getProperty "container.website.webport")
+WEBSSLPORT=$(getProperty "container.website.websslport")
+PAMPORT=$(getProperty "container.website.pamport")
+MCPORT=$(getProperty "container.website.mcport")
 # place details in our yml file
 sed -i "s/{DOMAIN}/$DOMAIN/g" "docker-compose.yml"
 sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "docker-compose.yml"
@@ -118,6 +122,10 @@ sed -i "s/{DBNAME}/$DBNAME/g" "docker-compose.yml"
 sed -i "s/{DBPREFIX}/$DBPREFIX/g" "docker-compose.yml"
 sed -i "s/{SMTPHOST}/$SMTPHOST/g" "docker-compose.yml"
 sed -i "s/{SSLEMAIL}/$SSLEMAIL/g" "docker-compose.yml"
+sed -i "s/{WEBPORT}/$WEBPORT/g" "docker-compose.yml"
+sed -i "s/{WEBSSLPORT}/$WEBSSLPORT/g" "docker-compose.yml"
+sed -i "s/{PAMPORT}/$PAMPORT/g" "docker-compose.yml"
+sed -i "s/{MCPORT}/$MCPORT/g" "docker-compose.yml"
 # Run docker compose
 docker-compose up -d
 # done, al should now run (following commands will show you more)

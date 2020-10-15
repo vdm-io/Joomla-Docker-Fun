@@ -52,6 +52,10 @@ do
   echo "container.website.dbprefix=jpbf" >> config.properties
   echo "container.website.smtphost=mailcatcher" >> config.properties
   echo "container.website.sslemail=info+ssl@vdm.io" >> config.properties
+  echo "container.website.webport=80" >> config.properties
+  echo "container.website.websslport=443" >> config.properties
+  echo "container.website.pamport=81" >> config.properties
+  echo "container.website.mcport=82" >> config.properties
   # we rest the instance, this will force all docker containers/images/volumes to be removed
   echo "container.reset=1" >> config.properties
   # now we move the config to the server
