@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  web:
+    # image created for this task
+    image: vdmio/joomla:4.0.0-beta4
+    container_name: joomla
+    restart: unless-stopped
+    environment:
+      WEBSITESUNAME: {WEBSITESUNAME}
+      WEBSITESUSERNAME: {WEBSITESUSERNAME}
+      WEBSITESUSERPASS: {WEBSITESUSERPASS}
+      WEBSITESEMAIL: {WEBSITESEMAIL}
+      WEBSITESNAME: {WEBSITESNAME}
+      DBDRIVER: {DBDRIVER}
+      DBHOST: {DBHOST}
+      DBUSER: {DBUSER}
+      DBPASS: {DBPASS}
+      DBRPASS: {DBRPASS}
+      DBNAME: {DBNAME}
+      DBPREFIX: {DBPREFIX}
+      SMTPHOST: {SMTPHOST}
+      STARTUP_COMMAND_1: deploy_joomla
+    links:
+      - {DBHOST}
+      - mailcatcher
+    depends_on:
+      - {DBHOST}
+    volumes:
+       - web-root:/var/www/html
+    ports:
+      - 80:80
+      - 443:443
+
+  {DBHOST}:
+    image: mysql:5.7
+    container_name: {DBHOST}
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: {DBRPASS}
+    volumes:
+       - {DBHOST}:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: {DBHOST}
+      PMA_PORT: 3306
+      # PMA_USER: root
+      # PMA_PASSWORD: {DBRPASS}
+    links:
+      - {DBHOST}
+    ports:
+      - 81:80
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: mailcatcher
+    restart: unless-stopped
+    ports:
+      - 82:1080
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - certbot-etc:/etc/letsencrypt
+      - certbot-var:/var/lib/letsencrypt
+      - web-root:/var/www/html
+    depends_on:
+      - web
+    command: certonly --webroot --webroot-path=/var/www/html --email {WEBSITESUNAME}@{DOMAIN} --agree-tos --no-eff-email --staging -d {DOMAIN}
+
+volumes:
+    web-root:
+    certbot-etc:
+    certbot-var:
+    {DBHOST}:
