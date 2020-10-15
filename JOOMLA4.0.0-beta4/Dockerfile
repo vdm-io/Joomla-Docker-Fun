@@ -2,11 +2,36 @@ FROM vdmio/php:7.4-apache-node12
 
 MAINTAINER Llewellyn van der Merwe <llewellyn.van-der-merwe@community.joomla.org>
 
+# Website User Details
+ENV WEBSITESUNAME=method \
+    WEBSITESUSERNAME=Method \
+    WEBSITESUSERPASS=vastdevelopmentmethod \
+    WEBSITESEMAIL="joomla@example.com" \
+    WEBSITESNAME="Joomla - VDM" \
+# Website database details
+    DBDRIVER=mysqli \
+    DBHOST=mysql \
+    DBUSER=vdm \
+    DBPASS=vastdevelopmentmethod \
+    DBRPASS=vastdevelopmentmethod \
+    DBNAME=joomla \
+    DBPREFIX=vdm \
+# Website email details
+    SMTPHOST=mailcatcher
+
 # load setup script
 RUN mkdir /home/docker/scripts
-COPY setup.sh /home/docker/scripts/setup.sh
+
+# move the scripts into place
+COPY docker-entrypoint.sh /usr/local/bin/deploy_joomla
 COPY configuration.php.tmpl /home/docker/scripts/configuration.php
 
-# now run the setup script (to load Joomla to the image)
-RUN sudo chmod +x /home/docker/scripts/setup.sh
-RUN /home/docker/scripts/setup.sh
+# run the setup script
+RUN sudo chmod +x /usr/local/bin/deploy_joomla
+
+# Download package and extract to web volume
+RUN set -ex; \
+	curl -o joomla.tar.bz2 -SL https://github.com/joomla/joomla-cms/releases/download/4.0.0-beta4/Joomla_4.0.0-beta4-Beta-Full_Package.tar.bz2; \
+	tar -xf joomla.tar.bz2 -C /var/www/html; \
+	rm joomla.tar.bz2
+

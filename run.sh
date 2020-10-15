@@ -3,7 +3,7 @@ clear;
 
 #██████████████████████████████████████████████████████████████████ COMMENTS ███
 #
-# Vast Development Method - Docker Containers Builder (2019)
+# Vast Development Method - Docker Container Builder (2019)
 # Llewellyn van der Merwe <llewellyn.van-der-merwe@community.joomla.org>
 # Copyright (C) 2019. All Rights Reserved
 # GNU/GPL Version 2 or later - http://www.gnu.org/licenses/gpl-2.0.html
@@ -11,12 +11,12 @@ clear;
 
 # Docker 
 command -v docker >/dev/null 2>&1 || { echo "Docker NOT installed. Aborting!"; exit 1; }
-
+command -v docker-compose >/dev/null 2>&1 || { echo "Docker Compose NOT installed. Aborting!"; exit 1; }
 
 #█████████████████████████████████████████████████████████████ main function ███
 function main() {
 	# make sure config is set
-	if [ ! -f $PROPERTYFILE ]
+	if [ ! -f "$PROPERTYFILE" ]
 	then
 		print "Config NOT found. Aborting!" F
 		exit 1
@@ -24,7 +24,7 @@ function main() {
 print
 print "█████████████████████████████████████████████████████████████████████████" H2
 print "█                                                                       █" H2
-print "█                        VDM - CONTAINERS - BUILDER                     █" H2
+print "█                         VDM - CONTAINER - BUILDER                     █" H2
 print "█                                                                       █" H2
 print "█████████████████████████████████████████████████████████████████████████" H2
 print
@@ -34,19 +34,18 @@ print
 	# show the configuration details at least once
 	showConfig
 	sleep 3 # pause to read
-	# exit 1 # to debug
-	# setup Traefik
-	setupTraefik
-	# setup Portainer
-	setupPortainer
-	# setup website config details
-	setupWebConfig
-	# Always first setup the PHP local image
-	setupPHPimage
-	# setup joomla docker image
-	setupJOOMLABASEimage
-	# build all websites
-	print "Next We Setup the docker-compose file per website, and... well we are nearly there." O
+	# is this an active build/pull of this image
+	if [ "$ACTIVEPHP" -eq "1" ]; then
+    # Always first setup the PHP local image
+    setupPHPimage
+	fi
+	# is this an active build/pull of this image
+	if [ "$ACTIVEJOOMLA" -eq "1" ]; then
+    # setup Joomla docker image
+    setupJOOMLAimage
+	fi
+	# deploy the Joomla containers
+	deployJoomlaContainer
 print
 print
 print "█████████████████████████████████████████████████████████████████████████" H2
@@ -112,6 +111,8 @@ function print {
         echo -e "${lightBlue}$1${NC}"
     elif [ "$2" == "O" ]; then
         echo -e "${normorange}$1${NC}"
+    elif [ "$2" == "B" ]; then
+        echo -e "${normblue}$1${NC}"
     fi
 }
 
@@ -153,92 +154,81 @@ while getopts ":f:" opt; do
 done
 
 #█████████████████████████████████████████████████████████████ Config values ███
-# number of websites to build
-WEBSITESNUMBER=$(getProperty "container.website.number")
+# Docker Details
+ACTIVEPHP=$(getProperty "docker.php")
+ACTIVEJOOMLA=$(getProperty "docker.joomla")
+# Website Details
+DOMAIN=$(getProperty "container.website.domain")
 WEBSITESUNAME=$(getProperty "container.website.uname")
 WEBSITESUSERNAME=$(getProperty "container.website.username")
 WEBSITESEMAIL=$(getProperty "container.website.email")
 WEBSITESNAME=$(getProperty "container.website.websitename")
-# 1 = true and 0 = false
-PORTAINER=$(getProperty "portainer.activate") # default should be 1
-PORTAINERNAME=$(getProperty "portainer.name") # default "portainer"
-TRAEFIK=$(getProperty "traefik.activate") # default should be 1
-TRAEFIKNAME=$(getProperty "traefik.name") # default "traefik"
-TRAEFIKDOMAIN=$(getProperty "traefik.domain") # default "vdm.io"
-TRAEFIKEMAIL=$(getProperty "traefik.email") # default "your@email.com"
-TRAEFIKDASHBOARD=$(getProperty "traefik.dashboard") # default "true"
-TRAEFIKINSECURE=$(getProperty "traefik.insecure") # default "true"
-# PHP image name
-phpImagePull=$(getProperty "php.image.pull") # default should be 1
-phpImageFolder=$(getProperty "php.image.docker.folder") # default "PHP7.4"
-phpImageName=$(getProperty "php.image.docker.name") # default "vdmio/php"
-phpImageTag=$(getProperty "php.image.docker.tag.name") # default "7.4-apache-node12"
+WEBSITESUSERPASS=$(getProperty "container.website.websiteuserpass")
+DBDRIVER=$(getProperty "container.website.dbdriver")
+DBHOST=$(getProperty "container.website.dbhost")
+DBUSER=$(getProperty "container.website.dbuser")
+DBPASS=$(getProperty "container.website.dbpass")
+DBRPASS=$(getProperty "container.website.dbrootpass")
+DBNAME=$(getProperty "container.website.dbname")
+DBPREFIX=$(getProperty "container.website.dbprefix")
+SMTPHOST=$(getProperty "container.website.smtphost")
+PGEMAIL=$(getProperty "container.website.pgemail")
+PGPASS=$(getProperty "container.website.pgpass")
 # Joomla image name
 joomlaImagePull=$(getProperty "joomla.image.pull") # default should be 1
 joomlaImageFolder=$(getProperty "joomla.image.docker.folder") # default "JOOMLA4.0.0-beta4"
 joomlaImageName=$(getProperty "joomla.image.docker.name") # default "vdmio/joomla"
 joomlaImageTag=$(getProperty "joomla.image.docker.tag.name") # default "4.0.0-beta4"
+# is this an active build/pull of this image
+if [ "$ACTIVEPHP" -eq "1" ]; then
+  # PHP image name
+  phpImagePull=$(getProperty "php.image.pull") # default should be 1
+  phpImageFolder=$(getProperty "php.image.docker.folder") # default "PHP7.4"
+  phpImageName=$(getProperty "php.image.docker.name") # default "vdmio/php"
+  phpImageTag=$(getProperty "php.image.docker.tag.name") # default "7.4-apache-node12"
+fi
 
 function showConfig(){
 print
 print "█████████████████████████████████████████████████████████ SHOW CONFIG ███" H1
 print
 print "CONTAINER DETAILS" H1
-print "WEBSITESNUMBER:                    $WEBSITESNUMBER" O
+print "DOMAIN:                            $DOMAIN" O
+print "WEBSITESNAME:                      $WEBSITESNAME" O
 print "WEBSITESUNAME:                     $WEBSITESUNAME" O
 print "WEBSITESUSERNAME:                  $WEBSITESUSERNAME" O
+print "WEBSITESUSERPASS                   xxxxxxxxxxxxxxxxxx" O
 print "WEBSITESEMAIL:                     $WEBSITESEMAIL" O
-print "WEBSITESNAME:                      $WEBSITESNAME" O
+print "DBDRIVER:                          $DBDRIVER" O
+print "DBHOST:                            $DBHOST" O
+print "DBUSER:                            $DBUSER" O
+print "DBPASS:                            xxxxxxxxxxxxxxxxxx" O
+print "DBRPASS:                           xxxxxxxxxxxxxxxxxx" O
+print "DBNAME:                            $DBNAME" O
+print "DBPREFIX:                          $DBPREFIX" O
+print "SMTPHOST:                          $SMTPHOST" O
+print "PGEMAIL:                           $PGEMAIL" O
+print "PGPASS:                            xxxxxxxxxxxxxxxxxx" O
 print
-print "PORTAINER DETAILS" H1
-print "PORTAINER:                         $PORTAINER" O
-print "PORTAINERNAME:                     $PORTAINERNAME" O
-print
-print "TRAEFIK DETAILS" H1
-print "TRAEFIK:                           $TRAEFIK" O
-print "TRAEFIKNAME:                       $TRAEFIKNAME" O
-print "TRAEFIKDOMAIN:                     $TRAEFIKDOMAIN" O
-print "TRAEFIKEMAIL:                      $TRAEFIKEMAIL" O
-print "TRAEFIKDASHBOARD:                  $TRAEFIKDASHBOARD" O
-print "TRAEFIKINSECURE:                   $TRAEFIKINSECURE" O
-print
+# is this an active build/pull of this image
+if [ "$ACTIVEPHP" -eq "1" ]; then
 print "PHP IMAGE DETAILS" H1
 print "phpImagePull:                      $phpImagePull" O
 print "phpImageFolder:                    $phpImageFolder" O
 print "phpImageName:                      $phpImageName" O
 print "phpImageTag:                       $phpImageTag" O
 print
+fi
+# is this an active build/pull of this image
+if [ "$ACTIVEJOOMLA" -eq "1" ]; then
 print "JOOMLA IMAGE DETAILS" H1
 print "joomlaImagePull:                   $joomlaImagePull" O
 print "joomlaImageFolder:                 $joomlaImageFolder" O
 print "joomlaImageName:                   $joomlaImageName" O
 print "joomlaImageTag:                    $joomlaImageTag" O
 print
+fi
 print
-}
-
-
-#███████████████████████████████████████████████████████████ Little Repeater ███
-function repeat() {
-	head -c $1 </dev/zero | tr '\0' $2
-}
-
-
-#████████████████████████████████████████████████████████████████ ECHO Tweak ███
-function echoTweak() {
-	echoMessage="$1"
-	mainlen="$2"
-	characters="$3"
-	if [ $# -lt 2 ]; then
-		mainlen=60
-	fi
-	if [ $# -lt 3 ]; then
-		characters='\056'
-	fi
-	chrlen="${#echoMessage}"
-	increaseBy=$((mainlen - chrlen))
-	tweaked=$(repeat "$increaseBy" "$characters")
-	echo -n "$echoMessage$tweaked"
 }
 
 #█████████████████████████████████████████████████████ Setup PHP local image ███
@@ -257,7 +247,7 @@ print "████████████████████████�
 print
 print	
 	# only setup PHP if not already done
-	elif [ ! "$(docker images | grep $phpImageName)" ]; then
+	elif [ ! "$(docker images | grep "$phpImageName")" ]; then
 print
 print
 print "█████████████████████████████████████████████████████ BUILD PHP IMAGE ███" H1
@@ -273,7 +263,7 @@ print
 }
 
 #██████████████████████████████████████████████████ Setup Joomla local image ███
-function setupJOOMLABASEimage() {
+function setupJOOMLAimage() {
 	# should we pull the image or build the image
 	if [ "$joomlaImagePull" -eq "1" ]; then
 print
@@ -281,14 +271,14 @@ print
 print "███████████████████████████████████████████████████ PULL JOOMLA IMAGE ███" H1
 print
 print	
-		docker pull "$joomlaImageName:$joomlaImageTag"	
+		docker pull "$joomlaImageName:$joomlaImageTag"
 print
 print
 print "███████████████████████████████████████████ DONE PULLING JOOMLA IMAGE ███" H1
 print
 print	
 	# only setup Joomla if not already done
-	elif [ ! "$(docker images | grep $joomlaImageName)" ]; then
+	elif [ ! "$(docker images | grep "$joomlaImageName")" ]; then
 print
 print
 print "██████████████████████████████████████████████████ BUILD JOOMLA IMAGE ███" H1
@@ -303,97 +293,58 @@ print
 	fi
 }
 
-#██████████████████████████████████████████████ Setup Random Website details ███
-function setupWebConfig() {
-	# first we create the text file of all the website details, if not already created.
-	# you can add your own manual list of website details (tab delimiter)
-	# subdomain	websitename	username	password	email	name
-	websiteConfigPath="${DOCKERFOLDER}/websites.txt"
-	if [ ! -f "$websiteConfigPath" ] 
-	then
+#████████████████████████████████████████████████████ Setup Joomla Container ███
+function deployJoomlaContainer() {
 print
 print
-print "████████████████████████████████████████ Building Website Config File ███" H1
+print "████████████████████████████████████████████ DEPLOY JOOMLA CONTAINER ███" H1
 print
 print
-		echoTweak "Building config file for $WEBSITESNUMBER websites."
+    # make sure our docker folder is created
 		if [ ! -d "$DOCKERFOLDER" ]; then
 			mkdir "$DOCKERFOLDER"
 		fi
-		# create the cofig file
-		touch "$websiteConfigPath"
-		# we set the subdomain username password
-		for i in $(seq $WEBSITESNUMBER)
-		do
-			password=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1);
-			subdomain=$(cat /dev/urandom | tr -dc 'a-z' | fold -w 7 | head -n 1);
-			# set the date to the website config
-			echo -e "${subdomain}\t" \
-				"${WEBSITESNAME}\t" \
-				"${WEBSITESUSERNAME}\t" \
-				"${password}\t" \
-				"${WEBSITESEMAIL}" \
-				"${WEBSITESUNAME}" \
-				>> "$websiteConfigPath"
-		done
-		echo "Done!"
-	fi
-}
-
-#█████████████████████████████████████████████████████████████ Setup Traefik ███
-function setupTraefik() {
-	# Check if we are using Traefik
-	if [ "$TRAEFIK" -eq "1" ]; then
-		# only install if Traefik is not already setup
-		if [ ! "$(docker ps -a | grep $TRAEFIKNAME)" ]; then
+    # Setup docker compose file
+    print "Moving docker-compose.yml into place" B
+    cp "$PWD/${joomlaImageFolder}/docker-compose.yml.tmpl" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DOMAIN} value with $DOMAIN" B
+    sed -i "s/{DOMAIN}/$DOMAIN/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {WEBSITESUNAME} value with $WEBSITESUNAME" B
+    sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {WEBSITESUSERNAME} value with $WEBSITESUSERNAME" B
+    sed -i "s/{WEBSITESUSERNAME}/$WEBSITESUSERNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {WEBSITESUSERPASS} value with xxxxxxxxxxxxxxxxxx" B
+    sed -i "s/{WEBSITESUSERPASS}/$WEBSITESUSERPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {WEBSITESEMAIL} value with $WEBSITESEMAIL" B
+    sed -i "s/{WEBSITESEMAIL}/$WEBSITESEMAIL/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {WEBSITESNAME} value with $WEBSITESNAME" B
+    sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBDRIVER} value with $DBDRIVER" B
+    sed -i "s/{DBDRIVER}/$DBDRIVER/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBHOST} value with $DBHOST" B
+    sed -i "s/{DBHOST}/$DBHOST/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBUSER} value with $DBUSER" B
+    sed -i "s/{DBUSER}/$DBUSER/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBPASS} value with xxxxxxxxxxxxxxxxxx" B
+    sed -i "s/{DBPASS}/$DBPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBRPASS} value with xxxxxxxxxxxxxxxxxx" B
+    sed -i "s/{DBRPASS}/$DBRPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBNAME} value with $DBNAME" B
+    sed -i "s/{DBNAME}/$DBNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {DBPREFIX} value with $DBPREFIX" B
+    sed -i "s/{DBPREFIX}/$DBPREFIX/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {SMTPHOST} value with $SMTPHOST" B
+    sed -i "s/{SMTPHOST}/$SMTPHOST/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {PGEMAIL} value with $PGEMAIL" B
+    sed -i "s/{PGEMAIL}/$PGEMAIL/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the {PGPASS} value with xxxxxxxxxxxxxxxxxx" B
+    sed -i "s/{PGPASS}/$PGPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
+    # Run docker compose
+    docker-compose -f "${DOCKERFOLDER}/docker-compose.yml" up -d
 print
 print
-print "███████████████████████████████████████████████████████ SETUP TRAEFIK ███" H1
+print "████████████████████████████████████████ CONTAINER HAS BEEN DEPLOYED ███" H1
 print
-print
-			# Setup configuration file
-			cp $PWD/scripts/traefik.yml.tmpl "${DOCKERFOLDER}/traefik.yml"
-			sed -i "s/{DOMAIN}/$TRAEFIKDOMAIN/g" "${DOCKERFOLDER}/traefik.yml"
-			sed -i "s/{EMAIL}/$TRAEFIKEMAIL/g" "${DOCKERFOLDER}/traefik.yml"
-			sed -i "s/{DASHBOARD}/$TRAEFIKDASHBOARD/g" "${DOCKERFOLDER}/traefik.yml"
-			sed -i "s/{INSECURE}/$TRAEFIKINSECURE/g" "${DOCKERFOLDER}/traefik.yml"
-			# Run docker
-			docker run -d -p 8080:8080 -p 80:80 -p 443:443 \
-			-v $DOCKERFOLDER/traefik.yml:/etc/traefik/traefik.yml \
-			-v /var/run/docker.sock:/var/run/docker.sock \
-			--name=$TRAEFIKNAME --restart=always \
-			traefik:v2.3
-print
-print
-print "███████████████████████████████████████████████████████ TRAEFIK READY ███" H1
-print
-		fi
-	fi
-}
-
-#███████████████████████████████████████████████████████████ Setup Portainer ███
-function setupPortainer() {
-	# Check if we are using Protainer
-	if [ "$PORTAINER" -eq "1" ]; then
-		# only install if Portainer is not already setup
-		if [ ! "$(docker ps -a | grep $PORTAINERNAME)" ]; then
-print
-print
-print "█████████████████████████████████████████████████████ SETUP Portainer ███" H1
-print
-print
-			docker volume create portainer_data
-			docker run -d -p 8000:8000 -p 9000:9000 \
-			-v /var/run/docker.sock:/var/run/docker.sock \
-			-v portainer_data:/data \
-			--name=$PORTAINERNAME --restart=always \
-			portainer/portainer-ce
-print
-print
-print "████████████████████████████████████████████████████ Portainer READY ███" H1
-print
-		fi
-	fi
 }
 
 # run program

@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  web:
+    # image created for this task
+    image: vdmio/joomla:4.0.0-beta4
+    container_name: joomla
+    environment:
+      WEBSITESUNAME: {WEBSITESUNAME}
+      WEBSITESUSERNAME: {WEBSITESUSERNAME}
+      WEBSITESUSERPASS: {WEBSITESUSERPASS}
+      WEBSITESEMAIL: {WEBSITESEMAIL}
+      WEBSITESNAME: {WEBSITESNAME}
+      DBDRIVER: {DBDRIVER}
+      DBHOST: {DBHOST}
+      DBUSER: {DBUSER}
+      DBPASS: {DBPASS}
+      DBRPASS: {DBRPASS}
+      DBNAME: {DBNAME}
+      DBPREFIX: {DBPREFIX}
+      SMTPHOST: {SMTPHOST}
+      STARTUP_COMMAND_1: deploy_joomla
+    links:
+      - {DBHOST}
+      - mailcatcher
+    depends_on:
+      - {DBHOST}
+    volumes:
+       - website:/var/www/html
+    ports:
+      - 80:80
+      - 443:443
+
+  {DBHOST}:
+    image: mysql:5.7
+    container_name: {DBHOST}
+    environment:
+      MYSQL_ROOT_PASSWORD: {DBRPASS}
+    volumes:
+       - mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: {DBHOST}
+      PMA_PORT: 3306
+      # PMA_USER: root
+      # PMA_PASSWORD: {DBRPASS}
+    links:
+      - {DBHOST}
+    ports:
+      - 81:80
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    container_name: mailcatcher
+    ports:
+      - 82:1080
+
+volumes:
+    website:
+    mysql:
