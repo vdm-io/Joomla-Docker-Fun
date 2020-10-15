@@ -55,17 +55,17 @@ if [ -d "$installFolder" ]; then
     sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/supports.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
   fi
 
+  # gives us the password hashed and ready for the database
   function getPassword(){
     pass=$1
     salt=`< /dev/urandom tr -dc "A-Za-z0-9" | head -c32`
     hash=$(echo -n $pass$salt | openssl md5)
     pass="$hash:$salt"
-    echo "$pass"
+    echo ${pass#*= }
   }
 
   # set the main user
-  HASH=$(getPassword "$WEBSITESUSERPASS")
-  PASSWORDHASH=${HASH#*= }
+  PASSWORDHASH=$(getPassword "$WEBSITESUSERPASS")
   USERID=$(( $RANDOM % 10 + 40 ))
   TODAY=$(date '+%Y-%m-%d %H:%M:%S') # 2020-10-15 00:00:00
   mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, registerDate, params, block) VALUES(${USERID}, '${WEBSITESUNAME}', '${WEBSITESUSERNAME}', '${WEBSITESEMAIL}', '${PASSWORDHASH}', '${TODAY}', '', 0)"

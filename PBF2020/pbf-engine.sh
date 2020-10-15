@@ -51,6 +51,9 @@ do
   echo "container.website.dbname=joomla_db" >> config.properties
   echo "container.website.dbprefix=jpbf" >> config.properties
   echo "container.website.smtphost=mailcatcher" >> config.properties
+  echo "container.website.sslemail=info+ssl@vdm.io" >> config.properties
+  # we rest the instance, this will force all docker containers/images/volumes to be removed
+  echo "container.reset=1" >> config.properties
   # now we move the config to the server
   sshpass -p "${server[0]}" scp config.properties root@${server[1]}:config.properties
 done < ../servers.details
