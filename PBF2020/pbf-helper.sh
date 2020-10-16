@@ -68,7 +68,7 @@ if [ "$RESETCONTAINER" -eq "1" ]; then
   # we remove all docker stuff, to force a deep update
   docker stop joomla phpmyadmin mailcatcher mysql certbot
   docker rm joomla phpmyadmin mailcatcher mysql certbot -f
-  docker rmi vdmio/joomla:4.0.0-beta4 phpmyadmin/phpmyadmin schickling/mailcatcher mysql:5.7 certbot/certbot -f
+  docker rmi vdmio/joomla:4.0.0-beta4 vdmio/joomla:4.0.0-beta5 phpmyadmin/phpmyadmin schickling/mailcatcher mysql:5.7 certbot/certbot -f
   docker volume rm root_db-data root_web-root
 fi
 # remove old composer file if found
