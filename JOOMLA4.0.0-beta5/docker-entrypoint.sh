@@ -84,7 +84,7 @@ if [ -d "$installFolder" ]; then
 
   # we want to install the patch tester
   if [ "$WEBSITESADDPATCHTESTER" -eq "1" ]; then
-    echo "Installing Patchtester"
+    echo "Installing patch tester"
     # php /var/www/html/cli/joomla.php extension:install --url "$PACKAGEPATCHTESTER"
     # the above would have been ideal...
     curl -o tmp/com_patchtester.zip -SL "$PACKAGEPATCHTESTER"

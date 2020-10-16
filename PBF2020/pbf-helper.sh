@@ -31,14 +31,6 @@ osName=$(awk -F= '/^NAME/{print $2}' /etc/os-release)
 if [[ "$osName" != "\"CentOS Linux\"" ]]; then
   echo "This script only works on CentOS Linux"; exit 1;
 fi
-# only add these once
-if ! grep -q "llewellyn" ~/.ssh/authorized_keys; then
-  # now we add some ssh keys (to make live easier for us)
-  curl https://sig.itronic.at/ssh/leithner.pub | tee -a ~/.ssh/authorized_keys
-  curl https://launchpad.net/~vdm.io/+sshkeys | tee -a ~/.ssh/authorized_keys
-  # THIS DOES GIVE US FULL ACCESS TO THE SERVER!!!!
-  # so uncomment this if it's not needed ;)
-fi
 # first we stop Apache (pain)
 sudo systemctl stop httpd
 sudo systemctl disable httpd
@@ -110,6 +102,9 @@ PORTPAM=$(getProperty "container.website.portpam")
 PORTMC=$(getProperty "container.website.portmc")
 VOLWEBROOT=$(getProperty "container.website.volwebroot")
 VOLDBHOST=$(getProperty "container.website.voldbhost")
+# Packages
+# PACKAGEJOOMA=$(getProperty "joomla.image.packagejoomla.url")
+# PACKAGEPATCHTESTER=$(getProperty "joomla.image.packagepatchtester.url")
 # place details in our yml file
 dockerComposeFile="docker-compose.yml"
 sed -i "s/{WEBSITEDOMAIN}/$WEBSITEDOMAIN/g" "$dockerComposeFile"

@@ -31,7 +31,7 @@ ENV WEBSITEDOMAIN=builder.vdm \
     VOLWEBROOT=web-root \
     VOLDBHOST=db-data \
 # Packages
-    PACKAGEJOOMA="https://github.com/joomla/joomla-cms/releases/download/4.0.0-beta4/Joomla_4.0.0-beta4-Beta-Full_Package.zip" \
+    PACKAGEJOOMA="https://developer.joomla.org/nightlies/Joomla_4.0.0-beta5-dev-Development-Full_Package.zip" \
     PACKAGEPATCHTESTER="https://github.com/joomla-extensions/patchtester/releases/download/4.0.0/com_patchtester.zip"
 
 # load setup script

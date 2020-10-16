@@ -181,6 +181,9 @@ PORTPAM=$(getProperty "container.website.portpam")
 PORTMC=$(getProperty "container.website.portmc")
 VOLWEBROOT=$(getProperty "container.website.volwebroot")
 VOLDBHOST=$(getProperty "container.website.voldbhost")
+# Packages
+# PACKAGEJOOMA=$(getProperty "joomla.image.packagejoomla.url")
+# PACKAGEPATCHTESTER=$(getProperty "joomla.image.packagepatchtester.url")
 # Joomla image name
 joomlaImagePull=$(getProperty "joomla.image.pull") # default should be 1
 joomlaImageFolder=$(getProperty "joomla.image.docker.folder") # default "JOOMLA4.0.0-beta4"
