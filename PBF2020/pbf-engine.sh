@@ -64,7 +64,7 @@ do
   echo "container.website.sslemail=joomla+ssl@vdm.io" >> config.properties
   echo "# the port generic settings" >> config.properties
   echo "container.website.portweb=80" >> config.properties
-  echo "container.website.portwebssl=443" >> config.properties
+  echo "container.website.portssl=443" >> config.properties
   echo "container.website.portpam=81" >> config.properties
   echo "container.website.portmc=82" >> config.properties
   echo "# the volumes generic settings" >> config.properties

@@ -176,7 +176,7 @@ DBPREFIX=$(getProperty "container.website.dbprefix")
 SMTPHOST=$(getProperty "container.website.smtphost")
 SSLEMAIL=$(getProperty "container.website.sslemail")
 PORTWEB=$(getProperty "container.website.portweb")
-PORTWEBSSL=$(getProperty "container.website.portwebssl")
+PORTSSL=$(getProperty "container.website.portssl")
 PORTPAM=$(getProperty "container.website.portpam")
 PORTMC=$(getProperty "container.website.portmc")
 VOLWEBROOT=$(getProperty "container.website.volwebroot")
@@ -218,7 +218,7 @@ print "DBPREFIX:                          $DBPREFIX" O
 print "SMTPHOST:                          $SMTPHOST" O
 print "SSLEMAIL:                          $SSLEMAIL" O
 print "PORTWEB:                           $PORTWEB" O
-print "PORTWEBSSL:                        $PORTWEBSSL" O
+print "PORTSSL:                           $PORTSSL" O
 print "PORTPAM:                           $PORTPAM" O
 print "PORTMC:                            $PORTMC" O
 print "VOLWEBROOT:                        $VOLWEBROOT" O
@@ -341,7 +341,7 @@ print
     sed -i "s/{SMTPHOST}/$SMTPHOST/g" "$dockerComposeFile"
     sed -i "s/{SSLEMAIL}/$SSLEMAIL/g" "$dockerComposeFile"
     sed -i "s/{PORTWEB}/$PORTWEB/g" "$dockerComposeFile"
-    sed -i "s/{PORTWEBSSL}/$PORTWEBSSL/g" "$dockerComposeFile"
+    sed -i "s/{PORTSSL}/$PORTSSL/g" "$dockerComposeFile"
     sed -i "s/{PORTPAM}/$PORTPAM/g" "$dockerComposeFile"
     sed -i "s/{PORTMC}/$PORTMC/g" "$dockerComposeFile"
     sed -i "s/{VOLWEBROOT}/$VOLWEBROOT/g" "$dockerComposeFile"

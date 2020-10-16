@@ -33,7 +33,7 @@ services:
        - {VOLWEBROOT}:/var/www/html
     ports:
       - {PORTWEB}:80
-      - {PORTWEBSSL}:443
+      - {PORTSSL}:443
 
   {DBHOST}:
     image: mysql:5.7

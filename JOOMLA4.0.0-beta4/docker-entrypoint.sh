@@ -81,4 +81,11 @@ if [ -d "$installFolder" ]; then
 
   # remove the installation folder
   rm -rf /var/www/html/installation
+
+  # we want to install the patch tester
+  if [ "$WEBSITESADDPATCHTESTER" -eq "1" ]; then
+    echo "Installing patch tester"
+	  curl -o com_patchtester.tar.bz2 -SL https://github.com/joomla-extensions/patchtester/releases/download/4.0.0/com_patchtester.tar.bz2
+    /home/docker/vendor/bin/joomla extension:installfile --www=/var/www "html" com_patchtester.tar.bz2
+  fi
 fi

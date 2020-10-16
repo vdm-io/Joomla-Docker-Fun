@@ -24,7 +24,7 @@ ENV WEBSITEDOMAIN=builder.vdm \
     SSLEMAIL="joomla+ssl@vdm.io" \
 # Ports
     PORTWEB=80 \
-    PORTWEBSSL=443 \
+    PORTSSL=443 \
     PORTPAM=81 \
     PORTMC=82 \
 # Volumes
