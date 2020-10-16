@@ -41,11 +41,11 @@ if [ -d "$installFolder" ]; then
 
 
   # Install joomla Database stuff
-  mysql -u root -p"$DBRPASS" -h "$DBHOST" -e "drop database if exists $DBNAME;"
-  mysql -u root -p"$DBRPASS" -h "$DBHOST" -e "create database $DBNAME;"
-  mysql -u root -p"$DBRPASS" -h "$DBHOST" -e "create user '$DBUSER'@'%' identified with mysql_native_password;"
-  mysql -u root -p"$DBRPASS" -h "$DBHOST" -e "grant all on $DBNAME.* to '$DBUSER'@'%';"
-  mysql -u root -p"$DBRPASS" -h "$DBHOST" -e "set password for '$DBUSER'@'%' = PASSWORD('$DBPASS');"
+  mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "drop database if exists $DBNAME;"
+  mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "create database $DBNAME;"
+  mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "create user '$DBUSER'@'%' identified with mysql_native_password;"
+  mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "grant all on $DBNAME.* to '$DBUSER'@'%';"
+  mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "set password for '$DBUSER'@'%' = PASSWORD('$DBPASS');"
 
   if [ -f $installFolder/sql/mysql/joomla.sql ]; then
     sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/joomla.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
@@ -68,7 +68,7 @@ if [ -d "$installFolder" ]; then
   PASSWORDHASH=$(getPassword "$WEBSITESUSERPASS")
   USERID=$(( $RANDOM % 10 + 40 ))
   TODAY=$(date '+%Y-%m-%d %H:%M:%S') # 2020-10-15 00:00:00
-  mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, registerDate, params, block) VALUES(${USERID}, '${WEBSITESUNAME}', '${WEBSITESUSERNAME}', '${WEBSITESEMAIL}', '${PASSWORDHASH}', '${TODAY}', '', 0)"
+  mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, registerDate, params, block, requireReset) VALUES(${USERID}, '${WEBSITESUNAME}', '${WEBSITESUSERNAME}', '${WEBSITESEMAIL}', '${PASSWORDHASH}', '${TODAY}', '', 0, '${WEBSITESPASSRESET}')"
   mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_user_usergroup_map (user_id, group_id) VALUES ('${USERID}', '8')"
   # set the manager user?
   # mysql -u "$DBUSER" -p "$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, block) VALUES(43, 'Manager', 'manager', 'manager@example.com', '\$2y\$10\$GICucf86nqR95Jz0mGTPkej8Mvzll/DRdXVClsUOkzyIPl6XF.2hS', 0)"

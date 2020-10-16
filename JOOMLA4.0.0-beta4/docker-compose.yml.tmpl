@@ -5,59 +5,66 @@ services:
     # image created for this task
     image: vdmio/joomla:4.0.0-beta4
     container_name: joomla
+    restart: unless-stopped
     environment:
+      WEBSITEDOMAIN: {WEBSITEDOMAIN}
+      WEBSITESNAME: {WEBSITESNAME}
       WEBSITESUNAME: {WEBSITESUNAME}
       WEBSITESUSERNAME: {WEBSITESUSERNAME}
       WEBSITESUSERPASS: {WEBSITESUSERPASS}
+      WEBSITESPASSRESET: {WEBSITESPASSRESET}
       WEBSITESEMAIL: {WEBSITESEMAIL}
-      WEBSITESNAME: {WEBSITESNAME}
+      WEBSITESADDPATCHTESTER: {WEBSITESADDPATCHTESTER}
       DBDRIVER: {DBDRIVER}
       DBHOST: {DBHOST}
       DBUSER: {DBUSER}
       DBPASS: {DBPASS}
-      DBRPASS: {DBRPASS}
+      DBROOTPASS: {DBROOTPASS}
       DBNAME: {DBNAME}
       DBPREFIX: {DBPREFIX}
       SMTPHOST: {SMTPHOST}
       STARTUP_COMMAND_1: deploy_joomla
     links:
       - {DBHOST}
-      - mailcatcher
+      - {SMTPHOST}
     depends_on:
       - {DBHOST}
     volumes:
-       - website:/var/www/html
+       - {VOLWEBROOT}:/var/www/html
     ports:
-      - 80:80
-      - 443:443
+      - {PORTWEB}:80
+      - {PORTWEBSSL}:443
 
   {DBHOST}:
     image: mysql:5.7
     container_name: {DBHOST}
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: {DBRPASS}
+      MYSQL_ROOT_PASSWORD: {DBROOTPASS}
     volumes:
-       - mysql:/var/lib/mysql
+       - {VOLDBHOST}:/var/lib/mysql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin
+    restart: unless-stopped
     environment:
       PMA_HOST: {DBHOST}
       PMA_PORT: 3306
       # PMA_USER: root
-      # PMA_PASSWORD: {DBRPASS}
+      # PMA_PASSWORD: {DBROOTPASS}
     links:
       - {DBHOST}
     ports:
-      - 81:80
+      - {PORTPAM}:80
 
-  mailcatcher:
+  {SMTPHOST}:
     image: schickling/mailcatcher
-    container_name: mailcatcher
+    restart: unless-stopped
+    container_name: {SMTPHOST}
     ports:
-      - 82:1080
+      - {PORTMC}:1080
 
 volumes:
-    website:
-    mysql:
+    {VOLWEBROOT}:
+    {VOLDBHOST}:

@@ -158,20 +158,29 @@ done
 ACTIVEPHP=$(getProperty "docker.php")
 ACTIVEJOOMLA=$(getProperty "docker.joomla")
 # Website Details
-DOMAIN=$(getProperty "container.website.domain")
+WEBSITEDOMAIN=$(getProperty "container.website.domain")
+WEBSITESNAME=$(getProperty "container.website.websitename")
 WEBSITESUNAME=$(getProperty "container.website.uname")
 WEBSITESUSERNAME=$(getProperty "container.website.username")
+WEBSITESUSERPASS=$(getProperty "container.website.userpass")
+WEBSITESPASSRESET=$(getProperty "container.website.passreset")
 WEBSITESEMAIL=$(getProperty "container.website.email")
-WEBSITESNAME=$(getProperty "container.website.websitename")
-WEBSITESUSERPASS=$(getProperty "container.website.websiteuserpass")
+WEBSITESADDPATCHTESTER=$(getProperty "container.website.addpatchtester")
 DBDRIVER=$(getProperty "container.website.dbdriver")
 DBHOST=$(getProperty "container.website.dbhost")
 DBUSER=$(getProperty "container.website.dbuser")
 DBPASS=$(getProperty "container.website.dbpass")
-DBRPASS=$(getProperty "container.website.dbrootpass")
+DBROOTPASS=$(getProperty "container.website.dbrootpass")
 DBNAME=$(getProperty "container.website.dbname")
 DBPREFIX=$(getProperty "container.website.dbprefix")
 SMTPHOST=$(getProperty "container.website.smtphost")
+SSLEMAIL=$(getProperty "container.website.sslemail")
+PORTWEB=$(getProperty "container.website.portweb")
+PORTWEBSSL=$(getProperty "container.website.portwebssl")
+PORTPAM=$(getProperty "container.website.portpam")
+PORTMC=$(getProperty "container.website.portmc")
+VOLWEBROOT=$(getProperty "container.website.volwebroot")
+VOLDBHOST=$(getProperty "container.website.voldbhost")
 # Joomla image name
 joomlaImagePull=$(getProperty "joomla.image.pull") # default should be 1
 joomlaImageFolder=$(getProperty "joomla.image.docker.folder") # default "JOOMLA4.0.0-beta4"
@@ -191,20 +200,29 @@ print
 print "█████████████████████████████████████████████████████████ SHOW CONFIG ███" H1
 print
 print "CONTAINER DETAILS" H1
-print "DOMAIN:                            $DOMAIN" O
+print "WEBSITEDOMAIN:                     $WEBSITEDOMAIN" O
 print "WEBSITESNAME:                      $WEBSITESNAME" O
 print "WEBSITESUNAME:                     $WEBSITESUNAME" O
 print "WEBSITESUSERNAME:                  $WEBSITESUSERNAME" O
 print "WEBSITESUSERPASS                   xxxxxxxxxxxxxxxxxx" O
+print "WEBSITESPASSRESET                  $WEBSITESPASSRESET" O
 print "WEBSITESEMAIL:                     $WEBSITESEMAIL" O
+print "WEBSITESADDPATCHTESTER:            $WEBSITESADDPATCHTESTER" O
 print "DBDRIVER:                          $DBDRIVER" O
 print "DBHOST:                            $DBHOST" O
 print "DBUSER:                            $DBUSER" O
 print "DBPASS:                            xxxxxxxxxxxxxxxxxx" O
-print "DBRPASS:                           xxxxxxxxxxxxxxxxxx" O
+print "DBROOTPASS:                        xxxxxxxxxxxxxxxxxx" O
 print "DBNAME:                            $DBNAME" O
 print "DBPREFIX:                          $DBPREFIX" O
 print "SMTPHOST:                          $SMTPHOST" O
+print "SSLEMAIL:                          $SSLEMAIL" O
+print "PORTWEB:                           $PORTWEB" O
+print "PORTWEBSSL:                        $PORTWEBSSL" O
+print "PORTPAM:                           $PORTPAM" O
+print "PORTMC:                            $PORTMC" O
+print "VOLWEBROOT:                        $VOLWEBROOT" O
+print "VOLDBHOST:                         $VOLDBHOST" O
 print
 # is this an active build/pull of this image
 if [ "$ACTIVEPHP" -eq "1" ]; then
@@ -303,36 +321,33 @@ print
     # Setup docker compose file
     print "Moving docker-compose.yml into place" B
     cp "$PWD/${joomlaImageFolder}/docker-compose.yml.tmpl" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DOMAIN} value with $DOMAIN" B
-    sed -i "s/{DOMAIN}/$DOMAIN/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {WEBSITESUNAME} value with $WEBSITESUNAME" B
-    sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {WEBSITESUSERNAME} value with $WEBSITESUSERNAME" B
-    sed -i "s/{WEBSITESUSERNAME}/$WEBSITESUSERNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {WEBSITESUSERPASS} value with xxxxxxxxxxxxxxxxxx" B
-    sed -i "s/{WEBSITESUSERPASS}/$WEBSITESUSERPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {WEBSITESEMAIL} value with $WEBSITESEMAIL" B
-    sed -i "s/{WEBSITESEMAIL}/$WEBSITESEMAIL/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {WEBSITESNAME} value with $WEBSITESNAME" B
-    sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBDRIVER} value with $DBDRIVER" B
-    sed -i "s/{DBDRIVER}/$DBDRIVER/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBHOST} value with $DBHOST" B
-    sed -i "s/{DBHOST}/$DBHOST/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBUSER} value with $DBUSER" B
-    sed -i "s/{DBUSER}/$DBUSER/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBPASS} value with xxxxxxxxxxxxxxxxxx" B
-    sed -i "s/{DBPASS}/$DBPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBRPASS} value with xxxxxxxxxxxxxxxxxx" B
-    sed -i "s/{DBRPASS}/$DBRPASS/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBNAME} value with $DBNAME" B
-    sed -i "s/{DBNAME}/$DBNAME/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {DBPREFIX} value with $DBPREFIX" B
-    sed -i "s/{DBPREFIX}/$DBPREFIX/g" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the {SMTPHOST} value with $SMTPHOST" B
-    sed -i "s/{SMTPHOST}/$SMTPHOST/g" "${DOCKERFOLDER}/docker-compose.yml"
+    print "Updating the docker-compose.yml file with the correct values" B
+    dockerComposeFile="${DOCKERFOLDER}/docker-compose.yml"
+    sed -i "s/{WEBSITEDOMAIN}/$WEBSITEDOMAIN/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESUSERNAME}/$WEBSITESUSERNAME/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESUSERPASS}/$WEBSITESUSERPASS/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESPASSRESET}/$WEBSITESPASSRESET/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESEMAIL}/$WEBSITESEMAIL/g" "$dockerComposeFile"
+    sed -i "s/{WEBSITESADDPATCHTESTER}/$WEBSITESADDPATCHTESTER/g" "$dockerComposeFile"
+    sed -i "s/{DBDRIVER}/$DBDRIVER/g" "$dockerComposeFile"
+    sed -i "s/{DBHOST}/$DBHOST/g" "$dockerComposeFile"
+    sed -i "s/{DBUSER}/$DBUSER/g" "$dockerComposeFile"
+    sed -i "s/{DBPASS}/$DBPASS/g" "$dockerComposeFile"
+    sed -i "s/{DBROOTPASS}/$DBROOTPASS/g" "$dockerComposeFile"
+    sed -i "s/{DBNAME}/$DBNAME/g" "$dockerComposeFile"
+    sed -i "s/{DBPREFIX}/$DBPREFIX/g" "$dockerComposeFile"
+    sed -i "s/{SMTPHOST}/$SMTPHOST/g" "$dockerComposeFile"
+    sed -i "s/{SSLEMAIL}/$SSLEMAIL/g" "$dockerComposeFile"
+    sed -i "s/{PORTWEB}/$PORTWEB/g" "$dockerComposeFile"
+    sed -i "s/{PORTWEBSSL}/$PORTWEBSSL/g" "$dockerComposeFile"
+    sed -i "s/{PORTPAM}/$PORTPAM/g" "$dockerComposeFile"
+    sed -i "s/{PORTMC}/$PORTMC/g" "$dockerComposeFile"
+    sed -i "s/{VOLWEBROOT}/$VOLWEBROOT/g" "$dockerComposeFile"
+    sed -i "s/{VOLDBHOST}/$VOLDBHOST/g" "$dockerComposeFile"
     # Run docker compose
-    docker-compose -f "${DOCKERFOLDER}/docker-compose.yml" up -d
+    docker-compose -f "$dockerComposeFile" up -d
 print
 print
 print "████████████████████████████████████████ CONTAINER HAS BEEN DEPLOYED ███" H1

@@ -87,48 +87,57 @@ fi
 # next we get our blank composer template file
 curl -L 'https://raw.githubusercontent.com/vdm-io/Joomla-Docker/main/PBF2020/docker-compose.yml.tmpl' -o docker-compose.yml
 # Get Website Details
-DOMAIN=$(getProperty "container.website.domain")
+WEBSITEDOMAIN=$(getProperty "container.website.domain")
+WEBSITESNAME=$(getProperty "container.website.websitename")
 WEBSITESUNAME=$(getProperty "container.website.uname")
 WEBSITESUSERNAME=$(getProperty "container.website.username")
+WEBSITESUSERPASS=$(getProperty "container.website.userpass")
+WEBSITESPASSRESET=$(getProperty "container.website.passreset")
 WEBSITESEMAIL=$(getProperty "container.website.email")
-WEBSITESNAME=$(getProperty "container.website.websitename")
-WEBSITESUSERPASS=$(getProperty "container.website.websiteuserpass")
+WEBSITESADDPATCHTESTER=$(getProperty "container.website.addpatchtester")
 DBDRIVER=$(getProperty "container.website.dbdriver")
 DBHOST=$(getProperty "container.website.dbhost")
 DBUSER=$(getProperty "container.website.dbuser")
 DBPASS=$(getProperty "container.website.dbpass")
-DBRPASS=$(getProperty "container.website.dbrootpass")
+DBROOTPASS=$(getProperty "container.website.dbrootpass")
 DBNAME=$(getProperty "container.website.dbname")
 DBPREFIX=$(getProperty "container.website.dbprefix")
 SMTPHOST=$(getProperty "container.website.smtphost")
 SSLEMAIL=$(getProperty "container.website.sslemail")
-WEBPORT=$(getProperty "container.website.webport")
-WEBSSLPORT=$(getProperty "container.website.websslport")
-PAMPORT=$(getProperty "container.website.pamport")
-MCPORT=$(getProperty "container.website.mcport")
+PORTWEB=$(getProperty "container.website.portweb")
+PORTWEBSSL=$(getProperty "container.website.portwebssl")
+PORTPAM=$(getProperty "container.website.portpam")
+PORTMC=$(getProperty "container.website.portmc")
+VOLWEBROOT=$(getProperty "container.website.volwebroot")
+VOLDBHOST=$(getProperty "container.website.voldbhost")
 # place details in our yml file
-sed -i "s/{DOMAIN}/$DOMAIN/g" "docker-compose.yml"
-sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "docker-compose.yml"
-sed -i "s/{WEBSITESUSERNAME}/$WEBSITESUSERNAME/g" "docker-compose.yml"
-sed -i "s/{WEBSITESUSERPASS}/$WEBSITESUSERPASS/g" "docker-compose.yml"
-sed -i "s/{WEBSITESEMAIL}/$WEBSITESEMAIL/g" "docker-compose.yml"
-sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" "docker-compose.yml"
-sed -i "s/{DBDRIVER}/$DBDRIVER/g" "docker-compose.yml"
-sed -i "s/{DBHOST}/$DBHOST/g" "docker-compose.yml"
-sed -i "s/{DBUSER}/$DBUSER/g" "docker-compose.yml"
-sed -i "s/{DBPASS}/$DBPASS/g" "docker-compose.yml"
-sed -i "s/{DBRPASS}/$DBRPASS/g" "docker-compose.yml"
-sed -i "s/{DBNAME}/$DBNAME/g" "docker-compose.yml"
-sed -i "s/{DBPREFIX}/$DBPREFIX/g" "docker-compose.yml"
-sed -i "s/{SMTPHOST}/$SMTPHOST/g" "docker-compose.yml"
-sed -i "s/{SSLEMAIL}/$SSLEMAIL/g" "docker-compose.yml"
-sed -i "s/{WEBPORT}/$WEBPORT/g" "docker-compose.yml"
-sed -i "s/{WEBSSLPORT}/$WEBSSLPORT/g" "docker-compose.yml"
-sed -i "s/{PAMPORT}/$PAMPORT/g" "docker-compose.yml"
-sed -i "s/{MCPORT}/$MCPORT/g" "docker-compose.yml"
+dockerComposeFile="docker-compose.yml"
+sed -i "s/{WEBSITEDOMAIN}/$WEBSITEDOMAIN/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESUSERNAME}/$WEBSITESUSERNAME/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESUSERPASS}/$WEBSITESUSERPASS/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESPASSRESET}/$WEBSITESPASSRESET/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESEMAIL}/$WEBSITESEMAIL/g" "$dockerComposeFile"
+sed -i "s/{WEBSITESADDPATCHTESTER}/$WEBSITESADDPATCHTESTER/g" "$dockerComposeFile"
+sed -i "s/{DBDRIVER}/$DBDRIVER/g" "$dockerComposeFile"
+sed -i "s/{DBHOST}/$DBHOST/g" "$dockerComposeFile"
+sed -i "s/{DBUSER}/$DBUSER/g" "$dockerComposeFile"
+sed -i "s/{DBPASS}/$DBPASS/g" "$dockerComposeFile"
+sed -i "s/{DBROOTPASS}/$DBROOTPASS/g" "$dockerComposeFile"
+sed -i "s/{DBNAME}/$DBNAME/g" "$dockerComposeFile"
+sed -i "s/{DBPREFIX}/$DBPREFIX/g" "$dockerComposeFile"
+sed -i "s/{SMTPHOST}/$SMTPHOST/g" "$dockerComposeFile"
+sed -i "s/{SSLEMAIL}/$SSLEMAIL/g" "$dockerComposeFile"
+sed -i "s/{PORTWEB}/$PORTWEB/g" "$dockerComposeFile"
+sed -i "s/{PORTWEBSSL}/$PORTWEBSSL/g" "$dockerComposeFile"
+sed -i "s/{PORTPAM}/$PORTPAM/g" "$dockerComposeFile"
+sed -i "s/{PORTMC}/$PORTMC/g" "$dockerComposeFile"
+sed -i "s/{VOLWEBROOT}/$VOLWEBROOT/g" "$dockerComposeFile"
+sed -i "s/{VOLDBHOST}/$VOLDBHOST/g" "$dockerComposeFile"
 # Run docker compose
 docker-compose up -d
-# done, al should now run (following commands will show you more)
+# done, all should now run (following commands will show you more)
 # docker ps
 # docker images
 # docker volume ls

@@ -1,24 +1,30 @@
 # YOUR CONFIG OPTIONS
 
 ### DOCKER ###########################################
+docker.install=1
 docker.host.ip=127.0.0.1
 # switch to build/pull these images
 docker.php=1
 docker.joomla=1
 
 ### WEBSITE CONTAINER #################################
+container.reset=1
 # the container main domain
-container.website.domain=vdm
+container.website.domain=builder.vdm
 # the generic website name
-container.website.websitename="Joomla Testing Website"
+container.website.websitename="Joomla VDM Website"
 # the generic name of a user
-container.website.uname=Tester
+container.website.uname="Joomla Method"
 # the generic useruser
-container.website.username=tester
+container.website.username=method
 # the generic user password
-container.website.websiteuserpass=vastdevelopmentmethod
+container.website.userpass=vastdevelopmentmethod
+# should the user be asked to reset their password
+container.website.passreset=0
 # the generic user and site email
-container.website.email="tester@email.com"
+container.website.email="joomla@example.com"
+# should we add the patch tester
+container.website.addpatchtester=1
 # the database generic settings
 container.website.dbdriver=mysqli
 container.website.dbhost=mysql
@@ -27,11 +33,21 @@ container.website.dbpass=vastdevelopmentmethod
 container.website.dbrootpass=vastdevelopmentmethod
 container.website.dbname=joomla
 container.website.dbprefix=vdm
+# the email generic settings
 container.website.smtphost=mailcatcher
+container.website.sslemail=joomla+ssl@vdm.io
+# the port generic settings
+container.website.portweb=80
+container.website.portwebssl=443
+container.website.portpam=81
+container.website.portmc=82
+# the volumes generic settings
+container.website.volwebroot=web-root
+container.website.voldbhost=db-data
 
 ### JOOMLA BASE ######################################
 # 1 is true and 0 is false
-joomla.image.pull=1
+joomla.image.pull=0
 # default "JOOMLA4.0.0-beta4"
 joomla.image.docker.folder=JOOMLA4.0.0-beta4
 # default "vdmio/joomla"
@@ -41,7 +57,7 @@ joomla.image.docker.tag.name=4.0.0-beta4
 
 ### PHP IMAGE #########################################
 # 1 is true and 0 is false
-php.image.pull=1
+php.image.pull=0
 # default "PHP7.4"
 php.image.docker.folder=PHP7.4
 # default "vdmio/php"

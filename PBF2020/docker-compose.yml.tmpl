@@ -7,39 +7,42 @@ services:
     container_name: joomla
     restart: unless-stopped
     environment:
+      WEBSITEDOMAIN: {WEBSITEDOMAIN}
+      WEBSITESNAME: {WEBSITESNAME}
       WEBSITESUNAME: {WEBSITESUNAME}
       WEBSITESUSERNAME: {WEBSITESUSERNAME}
       WEBSITESUSERPASS: {WEBSITESUSERPASS}
+      WEBSITESPASSRESET: {WEBSITESPASSRESET}
       WEBSITESEMAIL: {WEBSITESEMAIL}
-      WEBSITESNAME: {WEBSITESNAME}
+      WEBSITESADDPATCHTESTER: {WEBSITESADDPATCHTESTER}
       DBDRIVER: {DBDRIVER}
       DBHOST: {DBHOST}
       DBUSER: {DBUSER}
       DBPASS: {DBPASS}
-      DBRPASS: {DBRPASS}
+      DBROOTPASS: {DBROOTPASS}
       DBNAME: {DBNAME}
       DBPREFIX: {DBPREFIX}
       SMTPHOST: {SMTPHOST}
       STARTUP_COMMAND_1: deploy_joomla
     links:
       - {DBHOST}
-      - mailcatcher
+      - {SMTPHOST}
     depends_on:
       - {DBHOST}
     volumes:
-       - web-root:/var/www/html
+       - {VOLWEBROOT}:/var/www/html
     ports:
-      - {WEBPORT}:80
-      - {WEBSSLPORT}:443
+      - {PORTWEB}:80
+      - {PORTWEBSSL}:443
 
   {DBHOST}:
     image: mysql:5.7
     container_name: {DBHOST}
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: {DBRPASS}
+      MYSQL_ROOT_PASSWORD: {DBROOTPASS}
     volumes:
-       - {DBHOST}:/var/lib/mysql
+       - {VOLDBHOST}:/var/lib/mysql
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -49,18 +52,18 @@ services:
       PMA_HOST: {DBHOST}
       PMA_PORT: 3306
       # PMA_USER: root
-      # PMA_PASSWORD: {DBRPASS}
+      # PMA_PASSWORD: {DBROOTPASS}
     links:
       - {DBHOST}
     ports:
-      - {PAMPORT}:80
+      - {PORTPAM}:80
 
-  mailcatcher:
+  {SMTPHOST}:
     image: schickling/mailcatcher
-    container_name: mailcatcher
+    container_name: {SMTPHOST}
     restart: unless-stopped
     ports:
-      - {MCPORT}:1080
+      - {PORTMC}:1080
 
   certbot:
     image: certbot/certbot
@@ -68,15 +71,15 @@ services:
     volumes:
       - certbot-etc:/etc/letsencrypt
       - certbot-var:/var/lib/letsencrypt
-      - web-root:/var/www/html
+      - {VOLWEBROOT}:/var/www/html
     links:
       - web
     depends_on:
       - web
-    command: certonly --webroot --webroot-path=/var/www/html --email {SSLEMAIL} --agree-tos --no-eff-email --staging -d {DOMAIN}
+    command: certonly --webroot --webroot-path=/var/www/html --email {SSLEMAIL} --agree-tos --no-eff-email --staging -d {WEBSITEDOMAIN}
 
 volumes:
-    web-root:
+    {VOLWEBROOT}:
+    {VOLDBHOST}:
     certbot-etc:
     certbot-var:
-    {DBHOST}:
