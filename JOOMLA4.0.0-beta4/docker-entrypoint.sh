@@ -85,7 +85,20 @@ if [ -d "$installFolder" ]; then
   # we want to install the patch tester
   if [ "$WEBSITESADDPATCHTESTER" -eq "1" ]; then
     echo "Installing patch tester"
-	  curl -o com_patchtester.tar.bz2 -SL https://github.com/joomla-extensions/patchtester/releases/download/4.0.0/com_patchtester.tar.bz2
-    /home/docker/vendor/bin/joomla extension:installfile --www=/var/www "html" com_patchtester.tar.bz2
+    curl -o tmp/com_patchtester.zip -SL https://github.com/joomla-extensions/patchtester/releases/download/4.0.0/com_patchtester.zip
+    mkdir -p administrator/components/com_patchtester
+    mkdir -p media/com_patchtester
+    unzip -d administrator/components/com_patchtester tmp/com_patchtester.zip
+    mv -f administrator/components/com_patchtester/media/* media/com_patchtester
+    mv -f administrator/components/com_patchtester/admin/* administrator/components/com_patchtester
+    rm -rf administrator/components/com_patchtester/media
+    rm -rf administrator/components/com_patchtester/admin
+    # /home/docker/vendor/bin/joomla extension:install --www=/var/www "html" all
+    # PHP Fatal error:  Class Joomlatools\Console\Joomla\Application contains 1 abstract method and must therefore be declared
+    # abstract or implement the remaining methods (Joomla\Application\AbstractApplication::doExecute) in
+    # /home/docker/vendor/joomlatools/console/src/Joomlatools/Console/Joomla/Application.php on line 24
+
+    # so lets try to use Joomla default cli
+    # cli/joomla.php
   fi
 fi
