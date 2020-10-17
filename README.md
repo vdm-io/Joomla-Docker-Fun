@@ -13,6 +13,126 @@ $ cd Joomla-Docker
 $ sudo chmod +x run.sh
 $ ./run.sh -f config.properties
 ```
+# Docker
+
+```docker
+docker push vdmio/joomla:4.0.0-beta5
+```
+
+## The following Environment Variables are Available:
+
+```text
+### Website User Details
+    WEBSITEDOMAIN=builder.vdm
+    WEBSITESNAME="Joomla - VDM"
+    WEBSITESUNAME="Joomla Method"
+    WEBSITESUSERNAME=method
+    WEBSITESUSERPASS=vastdevelopmentmethod
+    WEBSITESPASSRESET=0
+    WEBSITESEMAIL="joomla@example.com"
+    WEBSITESADDPATCHTESTER=1
+
+### Website database details
+    DBDRIVER=mysqli
+    DBHOST=mysql
+    DBUSER=vdm
+    DBPASS=vastdevelopmentmethod
+    DBROOTPASS=vastdevelopmentmethod
+    DBNAME=joomla
+    DBPREFIX=vdm
+
+### Website email details
+    SMTPHOST=mailcatcher
+
+### Ports
+    PORTWEB=80
+    PORTSSL=443
+    PORTPAM=81
+    PORTMC=82
+
+### Volumes
+    VOLWEBROOT=web-root
+    VOLDBHOST=db-data
+
+### Packages
+    # PACKAGEJOOMA="https://developer.joomla.org/nightlies/Joomla_4.0.0-beta5-dev-Development-Full_Package.zip" # just in build
+    PACKAGEPATCHTESTER="https://github.com/joomla-extensions/patchtester/releases/download/4.0.0/com_patchtester.zip"
+```
+
+# Docker Compose
+
+```yml
+version: '3.8'
+
+services:
+  web:
+    # image created for this task
+    image: vdmio/joomla:4.0.0-beta5
+    container_name: joomla
+    restart: unless-stopped
+    environment:
+      WEBSITEDOMAIN: builder.vdm
+      WEBSITESNAME: "Joomla - VDM"
+      WEBSITESUNAME: "Joomla Method"
+      WEBSITESUSERNAME: method
+      WEBSITESUSERPASS: vastdevelopmentmethod
+      WEBSITESPASSRESET: 0
+      WEBSITESEMAIL: "joomla@example.com"
+      WEBSITESADDPATCHTESTER: 1
+      DBDRIVER: mysqli
+      DBHOST: mysql
+      DBUSER: vdm
+      DBPASS: vastdevelopmentmethod
+      DBROOTPASS: vastdevelopmentmethod
+      DBNAME: joomla
+      DBPREFIX: vdm
+      SMTPHOST: mailcatcher
+      STARTUP_COMMAND_1: deploy_joomla
+    links:
+      - mysql
+      - mailcatcher
+    depends_on:
+      - mysql
+    volumes:
+       - web-root:/var/www/html
+    ports:
+      - 80:80
+      - 443:443
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: vastdevelopmentmethod
+    volumes:
+       - db-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      # PMA_USER: root
+      # PMA_PASSWORD: vastdevelopmentmethod
+    links:
+      - mysql
+    ports:
+      - 81:80
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    restart: unless-stopped
+    container_name: mailcatcher
+    ports:
+      - 82:1080
+
+volumes:
+    web-root:
+    db-data:
+```
 
 # Shout-out to:
 - [Thecodingmachine PHP docker project](https://github.com/thecodingmachine/docker-images-php)

@@ -13,5 +13,5 @@ clear;
 while IFS=$'\t' read -r -a server
 do
   # This will take a while (so run this in the background and come back later ;)
-  ssh -tt -o ConnectTimeout=6 -o StrictHostkeyChecking=no root@${server[1]} "bash <(curl -s https://raw.githubusercontent.com/vdm-io/Joomla-Docker/main/PBF2020/pbf-helper.sh) && exit;"
+  ssh -tt -o ConnectTimeout=6 -o StrictHostkeyChecking=no root@${server[1]} "bash <(curl -s https://raw.githubusercontent.com/vdm-io/Joomla-Docker/main/PBF2020/pbf-helper.sh) && exit;" &
 done < ../servers.details
