@@ -63,7 +63,7 @@ print
 function show_help {
 cat << EOF
 =============================================
-Usage: ./deploy.sh [OPTION...]
+Usage: ./run.sh [OPTION...]
  To Create a bulk number of websites
 
    -f Path to config file
@@ -157,6 +157,8 @@ done
 # Docker Details
 ACTIVEPHP=$(getProperty "docker.php")
 ACTIVEJOOMLA=$(getProperty "docker.joomla")
+CONTAINERNAMEPREFIX=$(getProperty "docker.container.name.prefix")
+CONTAINERSUBNET=$(getProperty "docker.container.network")
 # Website Details
 WEBSITEDOMAIN=$(getProperty "container.website.domain")
 WEBSITESNAME=$(getProperty "container.website.websitename")
@@ -165,7 +167,6 @@ WEBSITESUSERNAME=$(getProperty "container.website.username")
 WEBSITESUSERPASS=$(getProperty "container.website.userpass")
 WEBSITESPASSRESET=$(getProperty "container.website.passreset")
 WEBSITESEMAIL=$(getProperty "container.website.email")
-WEBSITESADDPATCHTESTER=$(getProperty "container.website.addpatchtester")
 DBDRIVER=$(getProperty "container.website.dbdriver")
 DBHOST=$(getProperty "container.website.dbhost")
 DBUSER=$(getProperty "container.website.dbuser")
@@ -181,14 +182,14 @@ PORTPAM=$(getProperty "container.website.portpam")
 PORTMC=$(getProperty "container.website.portmc")
 VOLWEBROOT=$(getProperty "container.website.volwebroot")
 VOLDBHOST=$(getProperty "container.website.voldbhost")
+LOCALPATH=$(getProperty "container.website.localpath")
 # Packages
 # PACKAGEJOOMA=$(getProperty "joomla.image.packagejoomla.url")
-# PACKAGEPATCHTESTER=$(getProperty "joomla.image.packagepatchtester.url")
 # Joomla image name
 joomlaImagePull=$(getProperty "joomla.image.pull") # default should be 1
 joomlaImageFolder=$(getProperty "joomla.image.docker.folder") # default "JOOMLA4.0.0-beta4"
-joomlaImageName=$(getProperty "joomla.image.docker.name") # default "vdmio/joomla"
-joomlaImageTag=$(getProperty "joomla.image.docker.tag.name") # default "4.0.0-beta4"
+IMAGENAME=$(getProperty "joomla.image.docker.name") # default "vdmio/joomla"
+IMAGETAG=$(getProperty "joomla.image.docker.tag.name") # default "4.0.0-beta4"
 # is this an active build/pull of this image
 if [ "$ACTIVEPHP" -eq "1" ]; then
   # PHP image name
@@ -203,6 +204,8 @@ print
 print "█████████████████████████████████████████████████████████ SHOW CONFIG ███" H1
 print
 print "CONTAINER DETAILS" H1
+print "CONTAINERNAMEPREFIX:               $CONTAINERNAMEPREFIX" O
+print "CONTAINERSUBNET:                   $CONTAINERSUBNET" O
 print "WEBSITEDOMAIN:                     $WEBSITEDOMAIN" O
 print "WEBSITESNAME:                      $WEBSITESNAME" O
 print "WEBSITESUNAME:                     $WEBSITESUNAME" O
@@ -226,6 +229,7 @@ print "PORTPAM:                           $PORTPAM" O
 print "PORTMC:                            $PORTMC" O
 print "VOLWEBROOT:                        $VOLWEBROOT" O
 print "VOLDBHOST:                         $VOLDBHOST" O
+print "LOCALPATH:                         $LOCALPATH" O
 print
 # is this an active build/pull of this image
 if [ "$ACTIVEPHP" -eq "1" ]; then
@@ -241,8 +245,8 @@ if [ "$ACTIVEJOOMLA" -eq "1" ]; then
 print "JOOMLA IMAGE DETAILS" H1
 print "joomlaImagePull:                   $joomlaImagePull" O
 print "joomlaImageFolder:                 $joomlaImageFolder" O
-print "joomlaImageName:                   $joomlaImageName" O
-print "joomlaImageTag:                    $joomlaImageTag" O
+print "IMAGENAME:                         $IMAGENAME" O
+print "IMAGETAG:                          $IMAGETAG" O
 print
 fi
 print
@@ -288,20 +292,20 @@ print
 print "███████████████████████████████████████████████████ PULL JOOMLA IMAGE ███" H1
 print
 print	
-		docker pull "$joomlaImageName:$joomlaImageTag"
+		docker pull "$IMAGENAME:$IMAGETAG"
 print
 print
 print "███████████████████████████████████████████ DONE PULLING JOOMLA IMAGE ███" H1
 print
 print	
 	# only setup Joomla if not already done
-	elif [ ! "$(docker images | grep "$joomlaImageName")" ]; then
+	elif [ ! "$(docker images | grep -E "$IMAGENAME[[:space:]]+$IMAGETAG")" ]; then
 print
 print
 print "██████████████████████████████████████████████████ BUILD JOOMLA IMAGE ███" H1
 print
 print
-		docker build $(dirname $0)/$joomlaImageFolder -t "$joomlaImageName:$joomlaImageTag"
+		docker build $(dirname $0)/$joomlaImageFolder -t "$IMAGENAME:$IMAGETAG"
 print
 print
 print "██████████████████████████████████████████ DONE BUILDING JOOMLA IMAGE ███" H1
@@ -324,8 +328,10 @@ print
     # Setup docker compose file
     print "Moving docker-compose.yml into place" B
     cp "$PWD/${joomlaImageFolder}/docker-compose.yml.tmpl" "${DOCKERFOLDER}/docker-compose.yml"
-    print "Updating the docker-compose.yml file with the correct values" B
+    print "Updating the ${DOCKERFOLDER}/docker-compose.yml file with the correct values" B
     dockerComposeFile="${DOCKERFOLDER}/docker-compose.yml"
+    sed -i "s/{CONTAINERNAMEPREFIX}/$CONTAINERNAMEPREFIX/g" "$dockerComposeFile"
+    sed -i "s={CONTAINERSUBNET}=$CONTAINERSUBNET=g" "$dockerComposeFile"
     sed -i "s/{WEBSITEDOMAIN}/$WEBSITEDOMAIN/g" "$dockerComposeFile"
     sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" "$dockerComposeFile"
     sed -i "s/{WEBSITESUNAME}/$WEBSITESUNAME/g" "$dockerComposeFile"
@@ -333,7 +339,6 @@ print
     sed -i "s/{WEBSITESUSERPASS}/$WEBSITESUSERPASS/g" "$dockerComposeFile"
     sed -i "s/{WEBSITESPASSRESET}/$WEBSITESPASSRESET/g" "$dockerComposeFile"
     sed -i "s/{WEBSITESEMAIL}/$WEBSITESEMAIL/g" "$dockerComposeFile"
-    sed -i "s/{WEBSITESADDPATCHTESTER}/$WEBSITESADDPATCHTESTER/g" "$dockerComposeFile"
     sed -i "s/{DBDRIVER}/$DBDRIVER/g" "$dockerComposeFile"
     sed -i "s/{DBHOST}/$DBHOST/g" "$dockerComposeFile"
     sed -i "s/{DBUSER}/$DBUSER/g" "$dockerComposeFile"
@@ -349,8 +354,11 @@ print
     sed -i "s/{PORTMC}/$PORTMC/g" "$dockerComposeFile"
     sed -i "s/{VOLWEBROOT}/$VOLWEBROOT/g" "$dockerComposeFile"
     sed -i "s/{VOLDBHOST}/$VOLDBHOST/g" "$dockerComposeFile"
-    # Run docker compose
-    docker-compose -f "$dockerComposeFile" up -d
+    sed -i "s={LOCALPATH}=$LOCALPATH=g" "$dockerComposeFile"
+    sed -i "s={IMAGENAME}=$IMAGENAME=g" "$dockerComposeFile"
+    sed -i "s/{IMAGETAG}/$IMAGETAG/g" "$dockerComposeFile"
+    # Run docker compose (we stop from composing... we will do this manually for now)
+    print "To deploy run: docker-compose -f $dockerComposeFile up -d" O
 print
 print
 print "████████████████████████████████████████ CONTAINER HAS BEEN DEPLOYED ███" H1

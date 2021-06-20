@@ -1,0 +1,91 @@
+version: '2'
+
+services:
+  {CONTAINERNAMEPREFIX}_web:
+    # image created for this task
+    image: {IMAGENAME}:{IMAGETAG}
+    container_name: {CONTAINERNAMEPREFIX}_joomla
+    restart: unless-stopped
+    environment:
+      WEBSITEDOMAIN: {WEBSITEDOMAIN}
+      WEBSITESNAME: {WEBSITESNAME}
+      WEBSITESUNAME: {WEBSITESUNAME}
+      WEBSITESUSERNAME: {WEBSITESUSERNAME}
+      WEBSITESUSERPASS: {WEBSITESUSERPASS}
+      WEBSITESPASSRESET: {WEBSITESPASSRESET}
+      WEBSITESEMAIL: {WEBSITESEMAIL}
+      DBDRIVER: {DBDRIVER}
+      DBHOST: {CONTAINERNAMEPREFIX}_{DBHOST}
+      DBUSER: {DBUSER}
+      DBPASS: {DBPASS}
+      DBROOTPASS: {DBROOTPASS}
+      DBNAME: {DBNAME}
+      DBPREFIX: {DBPREFIX}
+      SMTPHOST: {CONTAINERNAMEPREFIX}_{SMTPHOST}
+      STARTUP_COMMAND_1: deploy_joomla
+    links:
+      - {CONTAINERNAMEPREFIX}_{DBHOST}
+      - {CONTAINERNAMEPREFIX}_{SMTPHOST}
+    depends_on:
+      - {CONTAINERNAMEPREFIX}_{DBHOST}
+    volumes:
+       # To set persistence
+       - '{LOCALPATH}/{CONTAINERNAMEPREFIX}_joomla:/var/www/html'
+       # To remove persistence
+       # - {VOLWEBROOT}:/var/www/html
+    networks:
+      - {CONTAINERNAMEPREFIX}-NETWORK
+    ports:
+      - {PORTWEB}:80
+      - {PORTSSL}:443
+
+  {CONTAINERNAMEPREFIX}_{DBHOST}:
+    image: mysql:5.7
+    container_name: {CONTAINERNAMEPREFIX}_{DBHOST}
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: {DBROOTPASS}
+    volumes:
+       # To set persistence
+       - '{LOCALPATH}/{CONTAINERNAMEPREFIX}_{VOLDBHOST}:/var/lib/mysql'
+       # To remove persistence
+       # - {VOLDBHOST}:/var/www/html
+    networks:
+      - {CONTAINERNAMEPREFIX}-NETWORK
+
+  {CONTAINERNAMEPREFIX}_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: {CONTAINERNAMEPREFIX}_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: {CONTAINERNAMEPREFIX}_{DBHOST}
+      PMA_PORT: 3306
+      # PMA_USER: root
+      # PMA_PASSWORD: {DBROOTPASS}
+    links:
+      - {CONTAINERNAMEPREFIX}_{DBHOST}
+    networks:
+      - {CONTAINERNAMEPREFIX}-NETWORK
+    ports:
+      - {PORTPAM}:80
+
+  {CONTAINERNAMEPREFIX}_{SMTPHOST}:
+    image: schickling/mailcatcher
+    restart: unless-stopped
+    container_name: {CONTAINERNAMEPREFIX}_{SMTPHOST}
+    networks:
+      - {CONTAINERNAMEPREFIX}-NETWORK
+    ports:
+      - {PORTMC}:1080
+
+networks:
+  {CONTAINERNAMEPREFIX}-NETWORK:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: {CONTAINERSUBNET}
+
+# To remove persistence
+# volumes:
+#    {VOLWEBROOT}:
+#    {VOLDBHOST}:

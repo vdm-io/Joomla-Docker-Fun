@@ -6,11 +6,13 @@ docker.host.ip=127.0.0.1
 # switch to build/pull these images
 docker.php=1
 docker.joomla=1
+docker.container.name.prefix=VDM
+docker.container.network=Joomla-VDM
 
 ### WEBSITE CONTAINER #################################
 container.reset=1
 # the container main domain
-container.website.domain=builder.vdm
+container.website.domain=joomla.vdm
 # the generic website name
 container.website.websitename="Joomla VDM Website"
 # the generic name of a user
@@ -23,8 +25,6 @@ container.website.userpass=vastdevelopmentmethod
 container.website.passreset=0
 # the generic user and site email
 container.website.email="joomla@example.com"
-# should we add the patch tester
-container.website.addpatchtester=1
 # the database generic settings
 container.website.dbdriver=mysqli
 container.website.dbhost=mysql
@@ -44,20 +44,19 @@ container.website.portmc=82
 # the volumes generic settings
 container.website.volwebroot=web-root
 container.website.voldbhost=db-data
+container.website.localpath=~/
 
 ### JOOMLA BASE ######################################
 # 1 is true and 0 is false
 joomla.image.pull=0
-# default "JOOMLA4.0.0-beta4"
-joomla.image.docker.folder=JOOMLA4.0.0-beta4
+# default "JOOMLA4.0.0-rc2"
+joomla.image.docker.folder=JOOMLA4.0.0-rc2
 # default "vdmio/joomla"
 joomla.image.docker.name=vdmio/joomla
 # default "4.0.0-beta4"
-joomla.image.docker.tag.name=4.0.0-beta4
+joomla.image.docker.tag.name=4.0.0-rc2
 # default Joomla package url
-# joomla.image.packagejoomla.url="https://developer.joomla.org/nightlies/Joomla_4.0.0-beta5-dev-Development-Full_Package.zip"
-# default Patchtester package url
-# joomla.image.packagepatchtester.url="https://github.com/joomla-extensions/patchtester/releases/download/4.0.0/com_patchtester.zip"
+# jo#omla.image.packagejoomla.url="https://github.com/joomla/joomla-cms/releases/download/4.0.0-rc2/Joomla_4.0.0-rc2-Release_Candidate-Full_Package.zip"
 
 ### PHP IMAGE #########################################
 # 1 is true and 0 is false

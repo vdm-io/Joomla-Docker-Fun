@@ -1,0 +1,136 @@
+<?php
+/**
+ * @package    VDM Install Extension (via CLI)
+ *
+ * @author     Llewellyn van der Merwe <https://www.vdm.io>
+ * @gitHub     https://gist.github.com/Llewellynvdm/fb2a8bcd24c42a955b67ec3154aa7b54
+ * @copyright  Copyright (C) 2020 Vast Development Method. All rights reserved.
+ * @license    GNU General Public License version 2 or later
+ */
+
+// Set flag that this is a parent file.
+const _JEXEC = 1;
+// turn debug off/on
+const JDEBUG = 1;
+
+error_reporting(E_ALL | E_NOTICE);
+ini_set('display_errors', 1);
+
+// Load system defines
+if (file_exists(dirname(__DIR__) . '/defines.php'))
+{
+	require_once dirname(__DIR__) . '/defines.php';
+}
+
+if (!defined('_JDEFINES'))
+{
+	define('JPATH_BASE', dirname(__DIR__));
+	require_once JPATH_BASE . '/includes/defines.php';
+}
+
+require_once JPATH_LIBRARIES . '/import.legacy.php';
+require_once JPATH_LIBRARIES . '/cms.php';
+
+// Load the configuration
+require_once JPATH_CONFIGURATION . '/configuration.php';
+
+/**
+ * CLI Install Extension
+ */
+class vdmInstallExtension extends JApplicationCli
+{
+
+	/**
+	 * Joomla! Site Application
+	 *
+	 * @var    JApplicationSite
+	 */
+	protected $app = null;
+
+	public function doExecute()
+	{
+		$_SERVER['HTTP_HOST'] = 'localhost';
+		$this->app            = JFactory::getApplication('site');
+		// stout an empty line
+		$this->out('');
+		// Get Extension Folder Path
+		if (($path = $this->input->get('p', false, 'PATH')) !== false)
+		{
+			// Start the Installation
+			$this->out('Starting Install....... ', false);
+			// Get the Installer Instance
+			$installer = JInstaller::getInstance();
+			// Install
+			if ($installer->install($path))
+			{
+				// Give Completion Notice
+				$this->out(
+					'Successfully Completed Installation of ' . JText::_(
+						$installer->manifest->name
+					) . '!'
+				);
+				// check if we have a message
+				if (isset($installer->message) && strlen($installer->message))
+				{
+					// setup a little component message with frame (nice to have)
+					$message = '  | ' . implode(
+							PHP_EOL . '  | ', array_filter(
+							array_map(
+								"trim", explode(
+									PHP_EOL, strip_tags($installer->message)
+								)
+							), function ($line) {
+							return strlen($line);
+						}));
+					$this->out('');
+					$this->out(' _|______________________________', false);
+					$this->out('_______________________ vdm.io _________');
+					$this->out('  |');
+					$this->out($message);
+					$this->out(' _|______________________________', false);
+					$this->out('________________________________________');
+					$this->out('  |');
+				}
+			}
+			else
+			{
+				// Give Error Notice
+				if (isset($installer->manifest->name))
+				{
+					$this->out(
+						'Installation of ' . JText::_(
+							$installer->manifest->name
+						) . ' FAILED!'
+					);
+				}
+				else
+				{
+					$this->out(
+						'Installation FAILED! (try removing the trail slash from your path)'
+					);
+				}
+			}
+		}
+		else
+		{
+			$this->out('');
+			$this->out(' _|______________________________', false);
+			$this->out('_______________________ vdm.io _________');
+			$this->out('  |');
+			$this->out('  | THE PATH IS MISSING!');
+			$this->out(
+				'  | The path to your extension folder must be added via the -p tag'
+			);
+			$this->out('  |');
+			$this->out('  | Example: php ./vdmInstallExtension.php -p "/path/to/extension_folder"'
+			);
+			$this->out(' _|______________________________', false);
+			$this->out('________________________________________');
+			$this->out('  |');
+		}
+		// stout an empty line
+		$this->out('');
+	}
+}
+
+JApplicationCli::getInstance('vdmInstallExtension')->execute();

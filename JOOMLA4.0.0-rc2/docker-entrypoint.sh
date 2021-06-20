@@ -11,6 +11,23 @@
 # Define install folder
 installFolder=/var/www/html/installation
 
+# Define administrator folder
+adminFolder=/var/www/html/administrator
+
+# check if we have the Joomla files, or download it now
+if [ ! -d "$adminFolder" ]; then
+    curl -o joomla.zip -SL ${PACKAGEJOOMA}; \
+    unzip -d /var/www/html joomla.zip; \
+    # we use zip for now
+    # tar -xf joomla.tar.bz2 -C /var/www/html; \
+    rm joomla.zip
+fi
+
+# simple basic random
+function getRandomString () {
+    echo $(tr -dc 'A-HJ-NP-Za-km-z' < /dev/urandom | dd bs=15 count=1 status=none)
+}
+
 # if the installation dir is not available
 # then we already have done an install
 # could be that an persistence volume is being used
@@ -24,6 +41,12 @@ if [ -d "$installFolder" ]; then
 
   cp /var/www/html/htaccess.txt /var/www/html/.htaccess
 
+  # Move the CLI Install Script into Place
+  # cp /home/docker/scripts/vdmInstallExtension.php /var/www/html/cli/vdmInstallExtension.php
+
+  # set the random Joomla secret
+  JOOMLASECRET=$(getRandomString)
+
   # Setup configuration file
   cp /home/docker/scripts/configuration.php /var/www/html/configuration.php
   sed -i "s/{WEBSITESNAME}/$WEBSITESNAME/g" /var/www/html/configuration.php
@@ -35,10 +58,20 @@ if [ -d "$installFolder" ]; then
   sed -i "s/{DBPASS}/$DBPASS/g" /var/www/html/configuration.php
   sed -i "s/{DBNAME}/$DBNAME/g" /var/www/html/configuration.php
   sed -i "s/{DBPREFIX}/$DBPREFIX/g" /var/www/html/configuration.php
+  sed -i "s/{JOOMLASECRET}/$JOOMLASECRET/g" /var/www/html/configuration.php
 
-  sleep 5
+  # we add more waiting options
+  maxcounter=45
+  counter=1
+  while ! mysql --protocol TCP -u root -p"$DBROOTPASS" -h "$DBHOST" -e "show databases;" > /dev/null 2>&1; do
+      sleep 1
+      counter=`expr $counter + 1`
+      if [ $counter -gt $maxcounter ]; then
+	   >&2 echo "We have been waiting for MySQL too long already; failing."
+	   exit 1
+      fi;
+  done
   echo "Installing Joomla into Mysql"
-
 
   # Install joomla Database stuff
   mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "drop database if exists $DBNAME;"
@@ -47,13 +80,11 @@ if [ -d "$installFolder" ]; then
   mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "grant all on $DBNAME.* to '$DBUSER'@'%';"
   mysql -u root -p"$DBROOTPASS" -h "$DBHOST" -e "set password for '$DBUSER'@'%' = PASSWORD('$DBPASS');"
 
-  if [ -f $installFolder/sql/mysql/joomla.sql ]; then
-    sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/joomla.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
-  else
-    sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/base.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
-    sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/extensions.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
-    sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/supports.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
-  fi
+  sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/base.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
+  sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/extensions.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
+  sed "s/#_/$DBPREFIX/g" $installFolder/sql/mysql/supports.sql | mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME"
+
+  # I would like to also tweak the install with our own SQL
 
   # gives us the password hashed and ready for the database
   function getPassword(){
@@ -70,30 +101,17 @@ if [ -d "$installFolder" ]; then
   TODAY=$(date '+%Y-%m-%d %H:%M:%S') # 2020-10-15 00:00:00
   mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, registerDate, params, block, requireReset) VALUES(${USERID}, '${WEBSITESUNAME}', '${WEBSITESUSERNAME}', '${WEBSITESEMAIL}', '${PASSWORDHASH}', '${TODAY}', '', 0, '${WEBSITESPASSRESET}')"
   mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_user_usergroup_map (user_id, group_id) VALUES ('${USERID}', '8')"
-  # set the manager user?
-  # mysql -u "$DBUSER" -p "$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, block) VALUES(43, 'Manager', 'manager', 'manager@example.com', '\$2y\$10\$GICucf86nqR95Jz0mGTPkej8Mvzll/DRdXVClsUOkzyIPl6XF.2hS', 0)"
-  # mysql -u "$DBUSER" -p "$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_user_usergroup_map (user_id, group_id) VALUES ('43', '6')"
-  # set the basic user?
-  # mysql -u "$DBUSER" -p "$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_users (id, name, username, email, password, block) VALUES(44, 'User', 'user', 'user@example.com', '\$2y\$10\$KesDwI5C.oMfZksWG7UHaOP.1TWf91HTZPOi143qx2Tvc/8.hJIU.', 0)"
-  # mysql -u "$DBUSER" -p "$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "INSERT INTO ${DBPREFIX}_user_usergroup_map (user_id, group_id) VALUES ('44', '2')"
 
   mysql -u "$DBUSER" -p"$DBPASS" -h "$DBHOST" -D "$DBNAME" -e "UPDATE ${DBPREFIX}_extensions SET manifest_cache='{\"version\":\"3\"}'"
 
   # remove the installation folder
   rm -rf /var/www/html/installation
 
-  # we want to install the patch tester
-  if [ "$WEBSITESADDPATCHTESTER" -eq "1" ]; then
-    echo "Installing Patchtester"
-    # php /var/www/html/cli/joomla.php extension:install --url "$PACKAGEPATCHTESTER"
-    # the above would have been ideal...
-    curl -o tmp/com_patchtester.zip -SL "$PACKAGEPATCHTESTER"
-    mkdir -p administrator/components/com_patchtester
-    mkdir -p media/com_patchtester
-    unzip -d administrator/components/com_patchtester tmp/com_patchtester.zip
-    mv -f administrator/components/com_patchtester/media/* media/com_patchtester
-    mv -f administrator/components/com_patchtester/admin/* administrator/components/com_patchtester
-    rm -rf administrator/components/com_patchtester/media
-    rm -rf administrator/components/com_patchtester/admin
+  # we want to install components
+  if [ -f "/home/docker/scripts/packages.vdm" ]; then
+    while read ZIP_URL; do
+      php /var/www/html/cli/joomla.php extension:install --url "$ZIP_URL"
+      # the above would have been ideal...
+    done < /home/docker/scripts/packages.vdm
   fi
 fi
